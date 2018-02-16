@@ -16,7 +16,7 @@ alone Node.js project.
 
   `# docker pull jupyter/datascience-notebook`
   
-1. Figure out where you want to put jupyter notebooks and other files (should probably be where you 
+3. Figure out where you want to put jupyter notebooks and other files (should probably be where you 
 checked this out from git). I have a directory called "jupyter-notebooks" that houses the code 
 related to this project.
 
