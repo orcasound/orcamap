@@ -9,5 +9,8 @@ alone Node.js project.
 
 # Docker setup
 
-1. Install docker for your OS according to their instructions
-1. 
+1. Install docker for your OS according to their instructions: https://docs.docker.com/install/
+  1. you may need to register for a docker account if you don't have one
+ 
+1. Install the jupyter-datascience notebook from the docker hub:
+  `# docker pull jupyter/datascience-notebook`
