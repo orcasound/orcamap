@@ -47,14 +47,14 @@ Basic idea is to take the plain docker image, create an "orcaSound" conda enviro
 This is also a bit overkill. To speed things along, we're just going to install the conda packages we want, stop the docker image and commit it, where we can then start it from scratch. Not super elegant (probably should use Docker Files for this) but works.
 
 
-`
+```shell
 cparason@grimnir:~/code/orcaNet/nodesite-orcaNet/www$ docker images
 REPOSITORY                       TAG                 IMAGE ID            CREATED             SIZE
 cpsarason/data-science-geojson   latest              a5fcbe9d688e        13 minutes ago      6.37 GB
 jupyter/datascience-notebook     latest              93936cc74dd8        2 weeks ago         6.3 GB
 hello-world                      latest              f2a91732366c        3 months ago        1.85 kB
 continuumio/anaconda3            latest              279ba92400be        3 months ago        3.05 GB
-`
+```
    
 
   
