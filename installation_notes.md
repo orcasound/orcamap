@@ -55,6 +55,70 @@ jupyter/datascience-notebook     latest              93936cc74dd8        2 weeks
 hello-world                      latest              f2a91732366c        3 months ago        1.85 kB
 continuumio/anaconda3            latest              279ba92400be        3 months ago        3.05 GB
 ```
-   
+
+Now you can start up an instance and start customizing additional packages. I have installed some additional python packages to the juptyer/datascience-notebook image and created something I'm going to call cpsarason/datascience-plus.
+
+```shell
+jovyan@8c6733bd24d0:~$ conda install -c conda-forge geojson
+Fetching package metadata ...............
+Solving package specifications: .
+
+Package plan for installation in environment /opt/conda:
+
+The following NEW packages will be INSTALLED:
+
+    geojson: 2.3.0-py_0 conda-forge
+
+Proceed ([y]/n)? y
+
+geojson-2.3.0- 100% |############################################################| Time: 0:00:00 156.22 kB/s
+jovyan@8c6733bd24d0:~$ conda install -c conda-forge altair
+Fetching package metadata ...............
+Solving package specifications: .
+
+Package plan for installation in environment /opt/conda:
+
+The following NEW packages will be INSTALLED:
+
+    altair: 1.2.1-py_0   conda-forge
+    vega:   0.4.4-py36_1 conda-forge
+
+Proceed ([y]/n)? y
+
+vega-0.4.4-py3 100% |############################################################| Time: 0:00:00 966.23 kB/s
+altair-1.2.1-p 100% |############################################################| Time: 0:00:00   3.04 MB/s
+Installing /opt/conda/lib/python3.6/site-packages/vega/static -> jupyter-vega
+Making directory: /opt/conda/share/jupyter/nbextensions/jupyter-vega/
+Copying: /opt/conda/lib/python3.6/site-packages/vega/static/vega.html -> /opt/conda/share/jupyter/nbextensions/jupyter-vega/vega.html
+Copying: /opt/conda/lib/python3.6/site-packages/vega/static/index.js -> /opt/conda/share/jupyter/nbextensions/jupyter-vega/index.js
+Copying: /opt/conda/lib/python3.6/site-packages/vega/static/vega.js -> /opt/conda/share/jupyter/nbextensions/jupyter-vega/vega.js
+Copying: /opt/conda/lib/python3.6/site-packages/vega/static/index.js.map -> /opt/conda/share/jupyter/nbextensions/jupyter-vega/index.js.map
+Copying: /opt/conda/lib/python3.6/site-packages/vega/static/vega-lite.html -> /opt/conda/share/jupyter/nbextensions/jupyter-vega/vega-lite.html
+- Validating: OK
+
+    To initialize this nbextension in the browser every time the notebook (or other app) loads:
+    
+          jupyter nbextension enable vega --py --sys-prefix
+    
+
+jovyan@8c6733bd24d0:~$ 
+```
+
+Now, I just need to stop the docker image, use the docker id shown at the joyvan shell prompt and create a new image. Sweet!
+
+```shell
+cpsarason@grimnir:~/code/orcaNet/nodesite-orcaNet/www$ docker ps -a
+CONTAINER ID        IMAGE                          COMMAND                  CREATED             STATUS              PORTS                    NAMES
+8c6733bd24d0        jupyter/datascience-notebook   "tini -- start.sh ..."   6 minutes ago       Up 6 minutes        0.0.0.0:8888->8888/tcp   heuristic_bartik
+cpsarason@grimnir:~/code/orcaNet/nodesite-orcaNet/www$ docker commit -m "added geojson and altair via conda" -a "Christian P. Sarason" 8c6733bd24d0 cpsarason/datascience-plus
+sha256:6373989fa2fffa5c44cc414086f285a0bcc1a6ef23cce8386be721abe9a0e30e
+cpsarason@grimnir:~/code/orcaNet/nodesite-orcaNet/www$ 
+
+```
+
+I basically adapted the instructions from digital ocean at: 
+https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04
+
+
 
   
