@@ -1,0 +1,26 @@
+{
+  "name": "orcasoundviz",
+  "version": "1.0.0",
+  "description": "Map Visualization of Orca Sightings",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cpsarason/orcaSoundViz.git"
+  },
+  "author": "Christian P. Sarason",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cpsarason/orcaSoundViz/issues"
+  },
+  "homepage": "https://github.com/cpsarason/orcaSoundViz#readme",
+  "dependencies": {
+     "express": "4.14.1"
+  }
+}
