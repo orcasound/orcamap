@@ -3,7 +3,9 @@
   "features": [
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "hour": 0
+      },
       "geometry": {
         "type": "Point",
         "coordinates": [
@@ -14,7 +16,9 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "hour": 1
+      },
       "geometry": {
         "type": "Point",
         "coordinates": [
@@ -25,7 +29,9 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {
+        "hour": 2
+      },
       "geometry": {
         "type": "Point",
         "coordinates": [
