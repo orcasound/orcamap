@@ -1,34 +1,40 @@
-# orcaSoundViz
+# Sea It Rise HTML5 Web App
+A lightweight HTML5 site that adapts the Kinvey starter application and uses the Kinvey (www.kinvey.com) HTML5 3.x SDK as 
+well as MapBox (www.mapbox.com) (for maps). Inundation data from NOAA Office for Coastal management data (coast.noaa.gov) layers. Water level and tide station data courtesy of the NOAA CO-OPS API (https://tidesandcurrents.noaa.gov/api/).
 
-Project to create/maintain a map based interface for visualizing reports 
-of Southern Resident Orcas in the Salish Sea (WA state and BC)
+## Setup
 
-## Database
+1. Clone the repo.
+2. Create an app backend using the [console](http://console.kinvey.com) for your application.
+2. Create a user (with password) using the [console](http://console.kinvey.com) for your application.
+3. Open `www/js/app.js` in a text editor
+4. Search for `<appKey>` and `<appSecret>` and replace with your `appKey` and `appSecret` for the app you created in step 1.
+5. Create a `books` collection and import `data/books.json`.
 
-The database of Orca locations will be located in an InfluxDB timeseries DB.
+**Mobile Identity Connect Setup** *<small>(Optional)</small>*
 
-https://docs.influxdata.com/influxdb/v1.1/introduction/getting_started/
+6. Open `www/js/app.js` in a text editor.
+7. Serach for `<micRedirectUr>` and replace with your `redirectUri` for Mobile Identity Connect
 
-Likely going to install it on a docker instance and then populate first with 
-test (fake) data and then with actual data from the existing orcaNet database.
+## Run
 
-## Map
+1. Execute `npm install`.
+2. Execute `npm start`.
 
-Basic functionality to include:
+## License
 
-1. Dots where orca have been seen most recently, color coded for timeliness?
-2. Capacity to add a 'sighting' by choosing your current location and dragging
-   an arrow in the direction of pod movement
-3. Optionally provide "fisherwhale" vs. "transient" classification
-4. optionally provide for upload of a photograph
-5. initially be password protected, but eventually having login/auth governed
-   by either the phone app or google login (or openauth equiv)
+All changes and updates the responsibility of the Sea It Rise project, use at your own risk! These 
+files are under the Apache License because of the original code used from Kinvey, Inc. (see below).
 
-## History
+Copyright (c) 2017 Kinvey Inc.
 
-Ideally provide a capability for looking at whale patterns through time
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+in compliance with the License. You may obtain a copy of the License at
 
-1. aggregated by month?
-2. full time slider?
+ http://www.apache.org/licenses/LICENSE-2.0
 
-
+Unless required by applicable law or agreed to in
+writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied. See the License for the specific language governing permissions and limitations under
+the License.
