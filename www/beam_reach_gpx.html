@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Orca Sound Map of Southern Residents</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/todc-bootstrap.min.css">
+    <link rel="stylesheet" href="css/app.css">
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js'></script>
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css' type='text/css' />
+
+
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:45px; bottom:0; width:100%; }
+        .marker {
+          background-image: url('img/sea-it-rise-flickr-icon.png');
+          background-size: cover;
+          width: 75px;
+          height: 75px;
+          border-radius: 50%;
+          cursor: pointer;
+        }
+        #layer-menu {
+        background: #fff;
+        position: absolute;
+        z-index: 1;
+        top: 50px;
+        left: 10px;
+        border-radius: 3px;
+        width: 120px;
+        border: 1px solid rgba(0,0,0,0.4);
+        font-family: 'Open Sans', sans-serif;
+        }
+
+        #layer-menu a {
+            font-size: 13px;
+            color: #404040;
+            display: block;
+            margin: 0;
+            padding: 0;
+            padding: 10px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0,0,0,0.25);
+            text-align: left;
+        }
+
+        #layer-menu a:last-child {
+            border: none;
+        }
+
+        #layer-menu a:hover {
+            background-color: #f8f8f8;
+            color: #404040;
+        }
+
+        #layer-menu a.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        #layer-menu a.active:hover {
+            background: #3074a4;
+        }
+    </style>
+</head>
+<body>
+
+<!--[if lte IE 9]>
+        <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+    <![endif]-->
+   <nav class="navbar navbar-masthead navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/orcasound.html">Orca Sound Map</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a id="map-dropdown" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Map<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="/orcasound.html">Map Interface</a></li>
+              </ul>
+            </li>
+            <li class="dropdown">
+        </div>
+      </div>
+    </nav>
+    <div id="layer-menu"></div>
+    <div id="map"></div>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css" type="text/css" />
+<style>
+#geocoder-container > div {
+    min-width:50%;
+    margin-left:25%;
+    position: sticky;
+    top: 65px;
+}
+</style>
+
+<script>
+
+mapboxgl.accessToken = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6ImNqZjl5dXdrMTE5ajQzM216ZXVyN2pqNmsifQ.2ntB_K2-ar1Y0RUzB1Me5w'
+
+var orcaTrack = $.getJSON('/data/beamreach_whaleonly.geojson');
+var shipTrack = $.getJSON('/data/beamreach.geojson');
+
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false
+});
+
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v9',
+    zoom: 9.5,
+    center: [ -123.04481506347655,
+          48.58840868861914]
+});
+
+map.on('load', function () {
+    // window.setInterval(function() {
+    //   timeNow = new Date();
+    //   getOrcaPodLocation(timeNow.getSeconds() % 24);
+    //   map.getSource('orca-pods').setData(orcaTronGeojson);
+    //   map.getSource('orca-obs').setData(orcaObsGeojson);
+    // } , 1000);
+    //getOrcaPodLocation(13);
+    //console.log(orcaTronGeojson);
+    // map.addSource('ship-track',
+    //               { type: 'geojson', data: shipTrack.responseJSON}
+    //             );
+    //
+    // map.addLayer({
+    //    'id': 'shipTrack',
+    //    'type': 'line',
+    //    'source': 'ship-track',
+    //
+    //   });
+
+
+    map.addSource('orca-track',
+                  { type: 'geojson', data: orcaTrack.responseJSON}
+                );
+
+    map.addLayer({
+       'id': 'orcaTrack',
+       'type': 'circle',
+       'source': 'orca-track',
+       'paint': {
+        // make circles larger as the user zooms from z12 to z22
+        'circle-radius': {
+            'base': 1.75,
+            'stops': [[1,1],[10, 10], [22, 200]]
+        },
+        'circle-color': 'red' //[
+        //     'match',
+        //     ['get', 'name'],
+        //     'HELP', '#e55e5e',
+        //     '#ccc'
+        // ]
+      }
+
+    });
+
+    // Create a popup, but don't add it to the map yet.
+       var popup = new mapboxgl.Popup({
+           closeButton: false,
+           closeOnClick: false
+       });
+
+       map.on('mouseenter', 'orcaTrack', function(e) {
+           // Change the cursor style as a UI indicator.
+           map.getCanvas().style.cursor = 'pointer';
+
+           var coordinates = e.features[0].geometry.coordinates.slice();
+           var description = 'Time:' + e.features[0].properties.time;
+
+           // Ensure that if the map is zoomed out such that multiple
+           // copies of the feature are visible, the popup appears
+           // over the copy being pointed to.
+           while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+               coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+           }
+
+           // Populate the popup and set its coordinates
+           // based on the feature found.
+           popup.setLngLat(coordinates)
+               .setHTML(description)
+               .addTo(map);
+       });
+
+       map.on('mouseleave', 'orcaTrack', function() {
+           map.getCanvas().style.cursor = '';
+           popup.remove();
+       });
+
+
+});
+
+
+
+
+// add search box to map
+map.addControl(new MapboxGeocoder({
+    accessToken: mapboxgl.accessToken
+}));
+// Add zoom and rotation controls to the map.
+map.addControl(new mapboxgl.NavigationControl());
+// Add geolocate control to the map.
+map.addControl(new mapboxgl.GeolocateControl({
+    positionOptions: {
+        enableHighAccuracy: true
+    },
+    trackUserLocation: true
+   })
+
+);
+// function getOrcaPodLocation(index) {
+//     orcaTronGeojson.features.pop();
+//     //loop through indices, picking "next" point in the track
+//     var indexNext = index + 1 < 24 ? index : 0;
+//     var podPoint = orcaTrack.responseJSON.features[index];
+//     var podNextPoint = orcaTrack.responseJSON.features[indexNext];
+//     var numSteps = 1.0;
+//     //console.log(podPoint);
+//     //console.log(podNextPoint);
+//     var lonStep = Math.abs(podPoint.geometry.coordinates[0] - podNextPoint.geometry.coordinates[0])/numSteps;
+//     var latStep = Math.abs(podPoint.geometry.coordinates[1] - podNextPoint.geometry.coordinates[1])/numSteps;
+//
+//     for (var i = 0; i < numSteps; i++) {
+//       //create finer-grained locations for orca pod movement.
+//       //this is ugly and brute force, but for simulation purposes.
+//       //in the full app, this function would be hitting the DB via API call
+//       //to retrieve geoJSON of orca positions.
+//       //console.log(lonStep);
+//       podPoint.geometry.coordinates[0] = podPoint.geometry.coordinates[0] + lonStep*i;
+//       podPoint.geometry.coordinates[1] = podPoint.geometry.coordinates[1] + latStep*i;
+//       //console.log(latStep);
+//       orcaTronGeojson.features.push(podPoint);
+//
+//       //console.log(orcaTronGeojson);
+//       for (var j = 0; j < 10; j++) {
+//         // add some random jitter on the pod locations
+//         var obsLat = podPoint.geometry.coordinates[1] + 0.015*(Math.random() - 0.5);
+//         var obsLon = podPoint.geometry.coordinates[0] + 0.015*(Math.random() - 0.5);
+//         //create a new geojson point feature we can push into the geoJSON
+//         var obsTime = new Date();
+//         var orcaObsPoint = {
+//                             "type": "Feature",
+//                             "geometry": {
+//                                 "type": "Point",
+//                                 "coordinates": [obsLon, obsLat]
+//                             },
+//                             "properties": {
+//                                 "title": "OrcaObs",
+//                                 "icon": "circle",
+//                                 "fill-color": "hsl(0, 71%, 26%)",
+//                                 "time": obsTime
+//                             }
+//                         };
+//         orcaObsGeojson.features.push(orcaObsPoint);
+//         console.log(orcaObsGeojson);
+//       };
+//     };
+
+</script>
+
+</body>
+</html>
