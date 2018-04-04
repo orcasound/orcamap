@@ -126,7 +126,7 @@
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6ImNqZjl5dXdrMTE5ajQzM216ZXVyN2pqNmsifQ.2ntB_K2-ar1Y0RUzB1Me5w'
 
-var orcaTrack = $.getJSON('/data/beamreach_whaleonly.geojson');
+var orcaTrack = $.getJSON('/data/track.geojson');
 var shipTrack = $.getJSON('/data/beamreach.geojson');
 
 var popup = new mapboxgl.Popup({
@@ -136,7 +136,7 @@ var popup = new mapboxgl.Popup({
 
 var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/dark-v9',
+    style: 'mapbox://styles/cpsarason/cjfbctlpk34xd2rqkjrqnrq3y',
     zoom: 9.5,
     center: [ -123.04481506347655,
           48.58840868861914]
@@ -163,29 +163,29 @@ map.on('load', function () {
     //   });
 
 
-    map.addSource('orca-track',
-                  { type: 'geojson', data: orcaTrack.responseJSON}
-                );
-
-    map.addLayer({
-       'id': 'orcaTrack',
-       'type': 'circle',
-       'source': 'orca-track',
-       'paint': {
-        // make circles larger as the user zooms from z12 to z22
-        'circle-radius': {
-            'base': 1.75,
-            'stops': [[1,1],[10, 10], [22, 200]]
-        },
-        'circle-color': 'red' //[
-        //     'match',
-        //     ['get', 'name'],
-        //     'HELP', '#e55e5e',
-        //     '#ccc'
-        // ]
-      }
-
-    });
+    // map.addSource('orca-track',
+    //               { type: 'geojson', data: orcaTrack.responseJSON}
+    //             );
+    //
+    // map.addLayer({
+    //    'id': 'orcaTrack',
+    //    'type': 'circle',
+    //    'source': 'orca-track',
+    //    'paint': {
+    //     // make circles larger as the user zooms from z12 to z22
+    //     'circle-radius': {
+    //         'base': 1.75,
+    //         'stops': [[1,1],[10, 10], [22, 200]]
+    //     },
+    //     'circle-color': 'red' [
+    //         'match',
+    //         ['get', 'status'],
+    //         'HELP', '#e55e5e',
+    //         'TRACK','red'
+    //     ]
+    //   }
+    //
+    // });
 
     // Create a popup, but don't add it to the map yet.
        var popup = new mapboxgl.Popup({
@@ -193,12 +193,19 @@ map.on('load', function () {
            closeOnClick: false
        });
 
-       map.on('mouseenter', 'orcaTrack', function(e) {
+       map.on('mouseenter', 'orca-sound-map', function(e) {
            // Change the cursor style as a UI indicator.
            map.getCanvas().style.cursor = 'pointer';
 
            var coordinates = e.features[0].geometry.coordinates.slice();
-           var description = 'Time:' + e.features[0].properties.time;
+           if (e.features[0].properties.status == 'HELP') {
+               var description = '<h3>Date:' + e.features[0].properties.date +
+                                 '</h3> <p>Status:' + e.features[0].properties.status +
+                                 '</p><p>Comment:' + e.features[0].properties.c2;
+           } else {
+               var description = '<h3>Date:' + e.features[0].properties.date +
+                               '</h3> <p>Status:' + e.features[0].properties.status;
+           }
 
            // Ensure that if the map is zoomed out such that multiple
            // copies of the feature are visible, the popup appears
@@ -214,7 +221,7 @@ map.on('load', function () {
                .addTo(map);
        });
 
-       map.on('mouseleave', 'orcaTrack', function() {
+       map.on('mouseleave', 'orca-sound-map', function() {
            map.getCanvas().style.cursor = '';
            popup.remove();
        });
