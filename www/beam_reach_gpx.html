@@ -193,7 +193,7 @@ map.on('load', function () {
            closeOnClick: false
        });
 
-       map.on('mouseenter', 'orca-sound-map', function(e) {
+       map.on('click', 'orca-sound-map', function(e) {
            // Change the cursor style as a UI indicator.
            map.getCanvas().style.cursor = 'pointer';
 
