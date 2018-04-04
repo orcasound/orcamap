@@ -190,7 +190,7 @@ map.on('load', function () {
     // Create a popup, but don't add it to the map yet.
        var popup = new mapboxgl.Popup({
            closeButton: false,
-           closeOnClick: true
+           closeOnClick: false
        });
 
        map.on('click', 'orca-sound-map', function(e) {
@@ -221,10 +221,10 @@ map.on('load', function () {
                .addTo(map);
        });
 
-       // map.on('mouseleave', 'orca-sound-map', function() {
-       //     map.getCanvas().style.cursor = '';
-       //     popup.remove();
-       // });
+       map.on('mouseleave', 'orca-sound-map', function() {
+           map.getCanvas().style.cursor = '';
+           popup.remove();
+       });
 
 
 });
