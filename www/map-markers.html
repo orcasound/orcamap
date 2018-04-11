@@ -12,13 +12,13 @@
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
-        
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
     <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js'></script>
     <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css' type='text/css' />
-    
-   
+
+
     <style>
         body { margin:0; padding:0; }
         #map { position:absolute; top:45px; bottom:0; width:100%; }
@@ -250,7 +250,7 @@
 
         map.addSource('noaa-6ft', {
             'type': 'raster',
-            'tiles': [
+            'tileset': [
                 'https://www.coast.noaa.gov/arcgis/rest/services/dc_slr/conf_6ft/MapServer/tile/{z}/{y}/{x}'
             ],
             'tileSize': 256
@@ -286,7 +286,7 @@
             if (error) throw error;
             map.addImage('flickr-icon', image);
 
-        }); 
+        });
 
         map.addSource('noaa-stations', {
             'type': 'geojson',
@@ -299,7 +299,7 @@
             "layout": {
                 "icon-image": "tide-station-icon",
                 "icon-size": 0.6,
-                
+
             }
         });
 
@@ -328,7 +328,7 @@
             "layout": {
                 "icon-image": "SIR-icon",
                 "icon-size": 0.5,
-               
+
             }
         }, "noaa-stations");
 
@@ -404,7 +404,7 @@
 
     // Flickr markers will get added
     map.on('zoomend', function () {
-        
+
         getFlickrMarkers();
         getSIRMarkers();
         getNOAAMarkers();
@@ -450,20 +450,20 @@
                     .setLngLat(feature.geometry.coordinates)
                     .addTo(map);
             }
-        
+
 
             //console.log(popup);
         });
 
     function getNOAAMarkers() {
-            
+
         //https://idpgis.ncep.noaa.gov/arcgis/rest/services/NOS_Observations/CO_OPS_Stations/FeatureServer/query?
         // + layerDefs=0&geometry=%7Bxmin%3A+-130%2C+ymin%3A+47%2C+xmax%3A+-120%2C+ymax%3A+49%7D&geometryType=esriGeometryEnvelope&f=json
- 
+
             // TODO: Refactor this function's logic to be similar to getSIRMarkers()
 
             // this wipes out the photo markers for the current zoom extent. Should probably limit number of markers to 50 or something.
-            
+
             noaaBBox = '{xmin:' + map.getBounds()._sw.lng + ',' +
                         'ymin:' + map.getBounds()._sw.lat + ',' +
                         'xmax:' + map.getBounds()._ne.lng + ',' +
@@ -477,7 +477,7 @@
            // testData.responseJSON.layers[0].features[0].attributes
 
             $.getJSON(noaa_station_URL, function (json) {
-                $.each(json.layers[0].features, function (i, myresult) {                    
+                $.each(json.layers[0].features, function (i, myresult) {
                     //console.log(myresult.attributes);
                         if (noaa_station_keys.includes(myresult.attributes.id)) {
                             true;
@@ -494,10 +494,10 @@
                             //    metadata.photo.id + '_' + metadata.photo.secret + '_q.jpg';
                             ////console.log(photo_img_url)
                             //TODO: refactor this section!
-                            //this is a terrible nested loop that is recursively loading, but at least I'm only creating markers for the 
-                            //unique values 
+                            //this is a terrible nested loop that is recursively loading, but at least I'm only creating markers for the
+                            //unique values
                             noaa_station_keys.push(myresult.attributes.id);
-                        
+
                             noaa_geojson.features.push({
                                 type: 'Feature',
                                 geometry: {
@@ -509,16 +509,16 @@
                                     id: myresult.attributes.id,
                                     station_data_url: myresult.attributes.data,
                                     station_meta_url: myresult.attributes.metaapi
-                      
+
                                 }
                             });
                             //console.log(noaa_geojson)
                         }
 
                         //now we have 1 good geojson for all the pics, we add it to the map.
-                   
+
                         map.getSource('noaa-stations').setData(noaa_geojson);
-                      
+
 
                 });
             });
@@ -591,7 +591,7 @@
                 //console.log(i)
                 $.getJSON(photoinfo_url, function (metadata) {
                     //var test_data = $.getJSON(photoinfo_url);
-                    
+
                     if (flickr_photo_keys.includes(metadata.photo.title._content)) {
                         true;// console.log('Found this one! ' + metadata.photo.title._content)
                     } else {
@@ -606,8 +606,8 @@
                             metadata.photo.id + '_' + metadata.photo.secret + '_q.jpg';
                         //console.log(photo_img_url)
                         //TODO: refactor this section!
-                        //this is a terrible nested loop that is recursively loading, but at least I'm only creating markers for the 
-                        //unique values 
+                        //this is a terrible nested loop that is recursively loading, but at least I'm only creating markers for the
+                        //unique values
                         flickr_photo_keys.push(metadata.photo.title._content);
 
                         flickr_geojson.features.push({
@@ -640,4 +640,3 @@
 
 </body>
 </html>
-
