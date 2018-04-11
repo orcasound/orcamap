@@ -23,7 +23,7 @@ for date, tracker_id, status, lat, lon, c1, c1 \
         {
             "type": "Feature",
             "properties": {
-                "id": %s,
+                "id": ,
                 "cmt": %s,
                 "status": %s,
                 "date": %s,

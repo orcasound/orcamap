@@ -17,6 +17,8 @@ http://mathjs.org/docs/getting_started.html
 ## Leaflet
 http://leafletjs.com/examples/map-panes/
 
+https://leaflet.github.io/Leaflet.draw/docs/examples/full.html
+
 
 ## InfluxDB
 
@@ -27,3 +29,6 @@ https://en.wikipedia.org/wiki/Geohash
 ### using geojson python libraries
 https://pypi.python.org/pypi/geojson#feature
 https://anaconda.org/conda-forge/geohash2
+https://en.wikipedia.org/wiki/Military_Grid_Reference_System
+https://en.wikipedia.org/wiki/Geohash
+https://www.twilio.com/blog/2017/08/geospatial-analysis-python-geojson-geopandas.html
