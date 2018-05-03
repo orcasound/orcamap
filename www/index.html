@@ -16,6 +16,11 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
 
+<!--	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+
+	<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+-->
 </head>
 <body>
 <style>
@@ -49,6 +54,8 @@ var MapBox = L.tileLayer('https://api.mapbox.com/styles/v1/cpsarason/cjfbctlpk34
  attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'
 }).addTo(map);
 
+//var locControl = L.control.locate().addTo(map);
+
 L.control.layers({
 	'esri': Esri_OceanBasemap,
 }, {
@@ -79,6 +86,8 @@ map.on(L.Draw.Event.CREATED, function (event) {
 		var layer = event.layer;
 		drawnItems.addLayer(layer);
 });
+
+
 
 
 
