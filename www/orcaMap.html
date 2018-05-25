@@ -22,55 +22,7 @@
     <style>
         body { margin:0; padding:0; }
         #map { position:absolute; top:45px; bottom:0; width:100%; }
-        .marker {
-          background-image: url('img/sea-it-rise-flickr-icon.png');
-          background-size: cover;
-          width: 75px;
-          height: 75px;
-          border-radius: 50%;
-          cursor: pointer;
-        }
-        #layer-menu {
-        background: #fff;
-        position: absolute;
-        z-index: 1;
-        top: 50px;
-        left: 10px;
-        border-radius: 3px;
-        width: 120px;
-        border: 1px solid rgba(0,0,0,0.4);
-        font-family: 'Open Sans', sans-serif;
-        }
 
-        #layer-menu a {
-            font-size: 13px;
-            color: #404040;
-            display: block;
-            margin: 0;
-            padding: 0;
-            padding: 10px;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(0,0,0,0.25);
-            text-align: left;
-        }
-
-        #layer-menu a:last-child {
-            border: none;
-        }
-
-        #layer-menu a:hover {
-            background-color: #f8f8f8;
-            color: #404040;
-        }
-
-        #layer-menu a.active {
-            background-color: #000000;
-            color: #ffffff;
-        }
-
-        #layer-menu a.active:hover {
-            background: #3074a4;
-        }
     </style>
 </head>
 <body>
@@ -135,18 +87,6 @@
 <style>
 
 
-/* background: rgba(0,0,0,0.5);
-    color: #fff;
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    padding:5px 10px;
-    margin: 0;
-    font-size: 11px;
-    line-height: 18px;
-    border-radius: 3px;
-    display: none; */
-
 .map-overlay {
     font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
     position: absolute;
@@ -188,10 +128,10 @@
 
 .map-overlay-inner button {
     display: inline-block;
-    width: 36px;
     height: 20px;
     border: none;
     cursor: pointer;
+
 }
 
 .map-overlay-inner button:focus {
@@ -230,12 +170,15 @@
 <div id="map-overlay" class="map-overlay top">
   <div id="coordinates" class="map-overlay-inner">
     <fieldset>
-      <div id="latitude">Latitude:</div>
-      <div id="longitude">Longitude:</div>
+      Latitude: <div id="latitude"></div>
+      Longitude: <div id="longitude"></div>
+    </fieldset>
+    <fieldset>
+      <label>Actions</label>
+      <div id="action-buttons"></div>
     </fieldset>
   </div>
 </div>
-
 
 <script>
 
@@ -315,6 +258,24 @@ var BlankMarkerJSON = {
     }]
 };
 
+
+// var addObsButton = document.createElement('button');
+// addObsButton.addEventListener('click'), function() {
+//   addRawObs();
+// };
+//
+// actionButtons.appendChild(addObsButton);
+//
+// var verifyObsButton = document.createElement('button');
+//
+// verifyObsButton.addEventListener('click'), fuction() {
+//   verifyRawObs();
+// };
+//
+// actionButtons.appendChild(verifyObsButton);
+
+
+
 function addRawObs() {
 
   //TODO: there has to be a better way, but got this From
@@ -347,6 +308,20 @@ function verifyRawObs() {
   map.getSource('marker-json').setData(BlankMarkerJSON);
   map.getSource('raw-sightings-json').setData(RawSightingsJSON);
 }
+
+var actionButtons = document.getElementById('action-buttons');
+
+var addObsButton = document.createElement('button');
+var verifyObsButton = document.createElement('button');
+
+addObsButton.innerHTML = "Add Obs";
+addObsButton.addEventListener('click', function() { addRawObs() });
+verifyObsButton.innerHTML = "Verify Added Obs";
+verifyObsButton.addEventListener('click', function() { verifyRawObs() });
+
+actionButtons.appendChild(addObsButton);
+actionButtons.appendChild(verifyObsButton);
+
 
 function onMove(e) {
     var coords = e.lngLat;
