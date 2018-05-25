@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Sea It Rise, Coastal Resiliency Planner</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/todc-bootstrap.min.css">
+    <link rel="stylesheet" href="css/app.css">
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js'></script>
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css' type='text/css' />
+
+
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:45px; bottom:0; width:100%; }
+        .marker {
+          background-image: url('img/sea-it-rise-flickr-icon.png');
+          background-size: cover;
+          width: 75px;
+          height: 75px;
+          border-radius: 50%;
+          cursor: pointer;
+        }
+        #layer-menu {
+        background: #fff;
+        position: absolute;
+        z-index: 1;
+        top: 50px;
+        left: 10px;
+        border-radius: 3px;
+        width: 120px;
+        border: 1px solid rgba(0,0,0,0.4);
+        font-family: 'Open Sans', sans-serif;
+        }
+
+        #layer-menu a {
+            font-size: 13px;
+            color: #404040;
+            display: block;
+            margin: 0;
+            padding: 0;
+            padding: 10px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0,0,0,0.25);
+            text-align: left;
+        }
+
+        #layer-menu a:last-child {
+            border: none;
+        }
+
+        #layer-menu a:hover {
+            background-color: #f8f8f8;
+            color: #404040;
+        }
+
+        #layer-menu a.active {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        #layer-menu a.active:hover {
+            background: #3074a4;
+        }
+    </style>
+</head>
+<body>
+
+<!--[if lte IE 9]>
+        <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+    <![endif]-->
+   <nav class="navbar navbar-masthead navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/index.html">OrcaMap</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="dropdown">
+              <a id="map-dropdown" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Map<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="/map-markers.html">Map Interface</a></li>
+              </ul>
+            </li>
+            <!-- <li class="dropdown">
+              <a id="photos-dropdown" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Images<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="/files.html">View Uploads</a></li>
+                <li><a href="/upload.html">Upload an Image</a></li>
+                <li><a href="/"><i>AR View (coming soon)</i></a></li>
+              </ul>
+            </li> -->
+          </ul>
+          <!-- <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+              <a id="account-dropdown" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">User <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="/profile.html">Profile</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="/logout.html">Logout</a></li>
+              </ul>
+            </li>
+          </ul> -->
+        </div>
+      </div>
+    </nav>
+    <!-- <div id="layer-menu"></div> -->
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/rsvp.min.js"></script>
+<!-- <script src="js/kinvey-html5-sdk.min.js"></script>
+<script src="js/app.js"></script> -->
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css" type="text/css" />
+<style>
+
+
+/* background: rgba(0,0,0,0.5);
+    color: #fff;
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    padding:5px 10px;
+    margin: 0;
+    font-size: 11px;
+    line-height: 18px;
+    border-radius: 3px;
+    display: none; */
+
+.map-overlay {
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    width: 200px;
+    top: 50px;
+    left: 0;
+    padding: 10px;
+
+}
+
+.map-overlay .map-overlay-inner {
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.map-overlay-inner fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 10px;
+}
+
+.map-overlay-inner fieldset:last-child {
+    margin: 0;
+}
+
+.map-overlay-inner select {
+    width: 100%;
+}
+
+.map-overlay-inner label {
+    display: block;
+    font-weight: bold;
+    margin: 0 0 5px;
+}
+
+.map-overlay-inner button {
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.map-overlay-inner button:focus {
+    outline: none;
+}
+
+.map-overlay-inner button:hover {
+    box-shadow:inset 0 0 0 3px rgba(0, 0, 0, 0.10);
+}
+
+#geocoder-container > div {
+    min-width:50%;
+    margin-left:25%;
+    position: sticky;
+    top: 65px;
+}
+</style>
+<!-- <div class='map-overlay top'>
+    <div class='map-overlay-inner'>
+        <fieldset>
+            <label>Select layer</label>
+            <select id='layer' name='layer'>
+                <option value='water'>Water</option>
+                <option value='building'>Buildings</option>
+            </select>
+        </fieldset>
+        <fieldset>
+            <label>Choose a color</label>
+            <div id='swatches'></div>
+        </fieldset>
+    </div>
+</div> -->
+
+
+<div id="map"></div>
+<div id="map-overlay" class="map-overlay top">
+  <div id="coordinates" class="map-overlay-inner">
+    <fieldset>
+      <div id="latitude">Latitude:</div>
+      <div id="longitude">Longitude:</div>
+    </fieldset>
+  </div>
+</div>
+
+
+<script>
+
+var mapbox_apikey = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ';
+
+mapboxgl.accessToken = mapbox_apikey;
+
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v9',
+    zoom: 13,
+    center: [-122.3383, 47.6027]
+});
+
+var canvas = map.getCanvasContainer();
+
+var RawSightingsJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-122.3499729,47.602]
+        },
+        "properties": {
+            "title": "Raw Sighting",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+
+var VerifiedSightingsJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": []
+        },
+        "properties": {
+            "title": "Verified Sighting",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+
+var MarkerJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-122.34997297363003,47.602468]
+        },
+        "properties": {
+            "title": "MarkerClick",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+var BlankMarkerJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": []
+        },
+        "properties": {
+            "title": "MarkerClick",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+
+function addRawObs() {
+
+  //TODO: there has to be a better way, but got this From
+  //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
+  //
+  //NOTE: This hack will go away when we hook up to InfluxDB for persistence
+  RawSightingsJSON = JSON.parse(JSON.stringify({
+      "type" : "FeatureCollection",
+      "features": [... RawSightingsJSON.features, ... MarkerJSON.features]
+      }));
+  MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+  map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+  map.getSource('marker-json').setData(BlankMarkerJSON);
+
+}
+
+function verifyRawObs() {
+  //TODO: there has to be a better way, but got this From
+  //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
+  //
+  //NOTE: This hack will go away when we hook up to InfluxDB for persistence
+
+  VerifiedSightingsJSON = JSON.parse(JSON.stringify({
+      "type" : "FeatureCollection",
+      "features": [... VerifiedSightingsJSON.features, ... RawSightingsJSON.features]
+      }));
+
+  RawSightingsJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+  map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+  map.getSource('marker-json').setData(BlankMarkerJSON);
+  map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+}
+
+function onMove(e) {
+    var coords = e.lngLat;
+
+    // Set a UI indicator for dragging.
+    canvas.style.cursor = 'grabbing';
+
+    // Update the Point feature in `geojson` coordinates
+    // and call setData to the source layer `point` on it.
+    MarkerJSON.features[0].geometry.coordinates = [coords.lng, coords.lat];
+    map.getSource('marker-json').setData(MarkerJSON);
+}
+
+function onUp(e) {
+    var coords = e.lngLat;
+
+    // Print the coordinates of where the point had
+    // finished being dragged to on the map.
+    coordinates.style.display = 'block';
+    coordinates.innerHTML = 'Longitude: ' + coords.lng + '<br />Latitude: ' + coords.lat;
+    canvas.style.cursor = '';
+
+    // Unbind mouse/touch events
+    map.off('mousemove', onMove);
+    map.off('touchmove', onMove);
+}
+
+
+
+map.on('load', function () {
+
+    // add a source for the "click" marker
+    map.addSource("marker-json", {
+      "type": "geojson",
+      "data": MarkerJSON
+    });
+
+    map.addLayer({
+        "id": "marker-json",
+        "type": "circle",
+        "source": "marker-json",
+        "paint": {
+            "circle-color": "red",
+            "circle-radius": 10,
+        }
+    }, "Raw Sightings");
+
+    // add a source for the "raw" sightings
+    map.addSource("raw-sightings-json", {
+      "type": "geojson",
+      "data": RawSightingsJSON
+    });
+
+    //add a layer for the "raw" sightings that come after a point is "clicked"
+    map.addLayer({
+        "id": "raw-sightings-json",
+        "type": "symbol",
+        "source":  "raw-sightings-json",
+        "layout": {
+            "icon-image": "marker-15",
+            "icon-size": 0.75,
+        }
+    }, "Raw Sightings");
+
+    map.addSource("verified-sightings-json", {
+      "type": "geojson",
+      "data": VerifiedSightingsJSON
+    });
+
+    //add a layer for the "verified" sightings that come after a point is "added"
+    map.addLayer({
+        "id": "verified-sightings-json",
+        "type": "circle",
+        "source":  "verified-sightings-json",
+        "paint": {
+            "circle-color": "green",
+            "circle-radius": 5,
+        }
+    }, "Verified Sightings");
+
+    // add attribution layer
+    map.addLayer({
+        "id": "attribution-layer",
+        "type": "circle",
+        "source": {
+            "type": "geojson",
+            "data": {
+                "type": "Feature",
+                "properties": {},
+                "geometry": null
+            }
+        }
+    });
+    map.style.sourceCaches['attribution-layer']._source.attribution = "&copy; NOAA <a href='https://tidesandcurrents.noaa.gov/' target='_blank'>CO-OPS</a> and <a href='https://coast.noaa.gov/digitalcoast/tools/slr' target='_blank'>Office for Coastal Management</a>";
+
+    // TODO: add search box to map?
+    // map.addControl(new MapboxGeocoder({
+    //     accessToken: mapboxgl.accessToken
+    // }));
+
+    // Add zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl());
+    // Add geolocate control to the map.
+    map.addControl(new mapboxgl.GeolocateControl({
+      positionOptions: {
+          enableHighAccuracy: true
+      },
+      trackUserLocation: true
+    }));
+
+    map.on('click','water',function (e) {
+      //console.log(MarkerJSON.features);
+      console.log(e);
+      point =  {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            e.lngLat.lng,
+            e.lngLat.lat
+          ]
+        },
+        "properties": {
+          "time": String(new Date().getTime()),
+          "obsType": "raw",
+          "verified": false
+        }
+      };
+      MarkerJSON.features.push(point);
+      map.getSource('marker-json').setData(MarkerJSON);
+
+      canvas.style.cursor = '';
+    });
+
+    // show coordinates as mouse moves
+    map.on('mousemove', function (e) {
+      //Print the coordinates of where the point had
+      // finished being dragged to on the map.
+
+      //for buttons, should modify https://www.mapbox.com/mapbox-gl-js/example/color-switcher/
+      //buttonOverlay.style.display = 'block';
+      latitude.innerHTML = e.lngLat.lat;
+      longitude.innerHTML = e.lngLat.lng;
+       // +
+       //                         '<br />Latitude: ' + e.lngLat.lat +
+       //                         '<br /><input type="button" value="Add Raw" id="addRawButton">';
+    });
+
+
+    // Create a popup, but don't add it to the map yet.
+    var popup = new mapboxgl.Popup({
+        closeButton: true,
+        closeOnClick: false
+    });
+
+
+
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    map.on('mouseenter', 'marker-json', function (e) {
+        map.setPaintProperty('marker-json', 'circle-color', '#3bb2d0');
+        canvas.style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'marker-json', function () {
+        map.setPaintProperty('marker-json', 'circle-color', 'red');
+        canvas.style.cursor = '';
+        //popup.remove();
+    });
+
+    // on mousedown, prevent the default map drag behavior
+    map.on('mousedown', 'marker-json', function(e) {
+        //console.log(e);
+        //e.preventDefault();
+        canvas.style.cursor = 'grab';
+        map.on('mousemove', onMove);
+        map.on('mouseup',onUp);
+    });
+
+    map.on('touchstart', 'marker-json', function(e) {
+        if (e.points.length !== 1) return;
+
+        // Prevent the default map drag behavior.
+        //e.preventDefault();
+
+        map.on('touchmove', onMove);
+        map.once('touchend', onUp);
+    });
+});
+</script>
+
+</body>
+</html>
