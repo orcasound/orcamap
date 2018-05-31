@@ -266,7 +266,7 @@ function appendPre(message) {
 function listObs() {
   gapi.client.sheets.spreadsheets.values.get({
     spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
-    range: 'OrcaSoundObsTest!A2:D',
+    range: 'OrcaSoundObsTest!A2:F',
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -295,14 +295,16 @@ function writeObs(obs) {
   //console.log(obs);
   //console.log(JSON.stringify(obs));
 
-  if (obs.properties.time) {
+  // test to make sure feature has an associated timestamp before adding it
+  if (obs.properties.timestamp) {
     //console.log('obs has time parameter: ' + obs.properties.time);
 
     //TODO: this user from oauth is badly hardwired. need to figure out a better
     //      way to id users
     var values = [
       [
-        obs.properties.time,
+        obs.properties.timestamp,
+        obs.properties.humantime,
         "visual",
         gapi.auth2.getAuthInstance().currentUser.Ab.w3.U3,
         obs.geometry.coordinates[0],
@@ -318,7 +320,7 @@ function writeObs(obs) {
     gapi.client.sheets.spreadsheets.values.append({
        spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
        range: 'OrcaSoundObsTest!A2:E',
-       valueInputOption: 'raw',
+       valueInputOption: 'USER_ENTERED',
        insertDataOption: 'INSERT_ROWS',
        resource: body
     }).then((response) => {
@@ -510,9 +512,6 @@ function verifyRawObs() {
 
 }
 
-
-
-
 function onMove(e) {
     var coords = e.lngLat;
 
@@ -625,6 +624,7 @@ map.on('load', function () {
     map.on('click','water',function (e) {
       //console.log(MarkerJSON.features);
       //console.log(e);
+      var clickTime = new Date();
       point =  {
         "type": "Feature",
         "geometry": {
@@ -635,13 +635,14 @@ map.on('load', function () {
           ]
         },
         "properties": {
-          "time": String(new Date().getTime()),
+          "timestamp": String(clickTime.getTime()),
+          "humantime": clickTime.toString(),
           "obsType": "raw",
           "verified": false
         }
       };
       MarkerJSON.features.push(point);
-      //console.log(MarkerJSON)
+      console.log(MarkerJSON)
       map.getSource('marker-json').setData(MarkerJSON);
 
       canvas.style.cursor = '';
