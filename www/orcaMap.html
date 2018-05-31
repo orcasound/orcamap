@@ -298,11 +298,13 @@ function writeObs(obs) {
   if (obs.properties.time) {
     //console.log('obs has time parameter: ' + obs.properties.time);
 
+    //TODO: this user from oauth is badly hardwired. need to figure out a better
+    //      way to id users
     var values = [
       [
         obs.properties.time,
         "visual",
-        "test",
+        gapi.auth2.getAuthInstance().currentUser.Ab.w3.U3,
         obs.geometry.coordinates[0],
         obs.geometry.coordinates[1]
       ],
