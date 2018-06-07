@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Sea It Rise, Coastal Resiliency Planner</title>
+    <title>OrcaMap, a crowd-sourced Orca mapping project</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/bootstrap.min.css">
@@ -266,10 +266,11 @@ function appendPre(message) {
 function listObs() {
   gapi.client.sheets.spreadsheets.values.get({
     spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
-    range: 'OrcaSoundObsTest!A2:F',
+    range: 'OrcaSoundObsTest!A2:I',
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
+      //console.log('IN listObs()');
       appendPre('Time, Type, User, Latitude, Longitude, Acoustic Intensity, Verified Intensity');
       for (i = 0; i < range.values.length; i++) {
         var row = range.values[i];
@@ -282,6 +283,7 @@ function listObs() {
                   row[5] + ', ' +
                   row[6] + ', '
                   );
+        //console.log(row);
       }
     } else {
       appendPre('No data found.');
@@ -289,6 +291,97 @@ function listObs() {
   }, function(response) {
     appendPre('Error: ' + response.result.error.message);
   });
+}
+
+function readObs() {
+
+  var gsheetVerifiedObs = {
+      "type": "FeatureCollection",
+      "features": [{
+          "type": "Feature",
+          "geometry": {
+              "type": "Point",
+              "coordinates": []
+          },
+          "properties": {
+              "title": "MarkerClick",
+              //"icon": "marker",
+              //"fill-color": "#3887be"
+          }
+      }]
+    };
+
+    var gsheetRawObs = {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": []
+            },
+            "properties": {
+                "title": "MarkerClick",
+                //"icon": "marker",
+                //"fill-color": "#3887be"
+            }
+        }]
+      };
+
+
+  gapi.client.sheets.spreadsheets.values.get({
+    spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
+    range: 'OrcaSoundObsTest!A2:I',
+  }).then(function(response) {
+    var range = response.result;
+    if (range.values.length > 0) {
+      //console.log('Time, Type, User, Latitude, Longitude, Acoustic Intensity, Verified Intensity');
+      for (i = 0; i < range.values.length; i++) {
+        var row = range.values[i];
+        // Print columns A through D, which correspond to indices 0-3.
+        if (row[8] === "yes" || row[8] === "Yes") {
+          var newObs = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [parseFloat(row[4]),parseFloat(row[5])]
+            },
+            "properties": {
+                "title": "Verified Sighting",
+                "time": row[0],
+                "user": row[3],
+                "note": row[9]
+            }
+          }
+          gsheetVerifiedObs.features.push(newObs);
+          //console.log(newObs);
+        }
+        else if  (row[2] === "visual") {
+          var newRawObs = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [parseFloat(row[4]),parseFloat(row[5])]
+            },
+            "properties": {
+                "title": "Unverified Sighting",
+                "time": row[0],
+                "user": row[3],
+                "note": row[9]
+            }
+          }
+          gsheetRawObs.features.push(newRawObs);
+          //console.log(gsheetVerifiedObs);
+          //console.log(newObs);
+        }
+      }
+
+    } else {
+      console.log('No data found.');
+    }
+  }, function(response) {
+    console.log('Error: ' + response.result.error.message);
+  });
+  return [gsheetVerifiedObs, gsheetRawObs];
 }
 
 function writeObs(obs) {
@@ -330,6 +423,44 @@ function writeObs(obs) {
     });
   }
 }
+
+
+
+
+
+  // // test to make sure feature has an associated timestamp before adding it
+  // if (obs.properties.timestamp) {
+  //   //console.log('obs has time parameter: ' + obs.properties.time);
+  //
+  //   //TODO: this user from oauth is badly hardwired. need to figure out a better
+  //   //      way to id users
+  //   var values = [
+  //     [
+  //       obs.properties.timestamp,
+  //       obs.properties.humantime,
+  //       "visual",
+  //       gapi.auth2.getAuthInstance().currentUser.Ab.w3.U3,
+  //       obs.geometry.coordinates[0],
+  //       obs.geometry.coordinates[1]
+  //     ],
+  //     // Additional rows ...
+  //   ];
+  //   var body = {
+  //     values: values
+  //   };
+  //
+  //   gapi.client.sheets.spreadsheets.values.append({
+  //      spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
+  //      range: 'OrcaSoundObsTest!A2:E',
+  //      valueInputOption: 'USER_ENTERED',
+  //      insertDataOption: 'INSERT_ROWS',
+  //      resource: body
+  //   }).then((response) => {
+  //     var result = response.result;
+  //     //console.log(response);
+  //     //console.log(`${result.updatedCells} cells updated.`);
+  //   });
+
 </script>
 <script async defer src="https://apis.google.com/js/api.js"
       onload="this.onload=function(){};handleClientLoad()"
@@ -373,19 +504,19 @@ var map = new mapboxgl.Map({
 var actionButtons = document.getElementById('action-buttons');
 
 var addObsButton = document.createElement('button');
-var verifyObsButton = document.createElement('button');
-var listObsButton = document.createElement('button');
+var getObsButton = document.createElement('button');
+var showObsButton = document.createElement('button');
 
-addObsButton.innerHTML = "Add Raw Obsersvations";
+addObsButton.innerHTML = "Add Raw Observations";
 addObsButton.addEventListener('click', function() { addRawObs() });
-verifyObsButton.innerHTML = "Verify Raw Observations";
-verifyObsButton.addEventListener('click', function() { verifyRawObs() });
-listObsButton.innerHTML = "List Observations";
-listObsButton.addEventListener('click', function() { listObs() });
+getObsButton.innerHTML = "Update From Google Sheet";
+getObsButton.addEventListener('click', function() { loadObs() });
+showObsButton.innerHTML = "Refresh Markers";
+showObsButton.addEventListener('click', function() { showObs() });
 
 actionButtons.appendChild(addObsButton);
-actionButtons.appendChild(verifyObsButton);
-actionButtons.appendChild(listObsButton);
+actionButtons.appendChild(getObsButton);
+actionButtons.appendChild(showObsButton);
 
 actionButtons.appendChild(authorizeButton);
 actionButtons.appendChild(signoutButton);
@@ -398,7 +529,7 @@ var RawSightingsJSON = {
         "type": "Feature",
         "geometry": {
             "type": "Point",
-            "coordinates": [-122.3499729,47.602]
+            "coordinates": []
         },
         "properties": {
             "title": "Raw Sighting",
@@ -430,7 +561,7 @@ var MarkerJSON = {
         "type": "Feature",
         "geometry": {
             "type": "Point",
-            "coordinates": [-122.34997297363003,47.602468]
+            "coordinates": []
         },
         "properties": {
             "title": "MarkerClick",
@@ -485,32 +616,53 @@ function addRawObs() {
   //console.log(MarkerJSON.features);
   //console.log(RawSightingsJSON)
 
-  map.getSource('raw-sightings-json').setData(RawSightingsJSON);
-  map.getSource('marker-json').setData(BlankMarkerJSON);
-  MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
-}
-
-function verifyRawObs() {
-  //TODO: there has to be a better way, but got this From
-  //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
-  //
-  //NOTE: This hack will go away when we hook up to InfluxDB for persistence
-
   //write the raw obs to the Google Sheet
   RawSightingsJSON.features.forEach(writeObs);
 
-  //add the raw obs to the "Verified" JSON obs for styling
-  VerifiedSightingsJSON = JSON.parse(JSON.stringify({
-      "type" : "FeatureCollection",
-      "features": [... VerifiedSightingsJSON.features, ... RawSightingsJSON.features]
-      }));
-
-  RawSightingsJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
-  map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
-  map.getSource('marker-json').setData(BlankMarkerJSON);
+  //change markers --- this is kind of cheating b.c. we're only updating the local copy (e.g. not reading in from the sheet)
   map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+  map.getSource('marker-json').setData(BlankMarkerJSON);
+  MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+  map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
 
 }
+
+function verifyRawObs() {
+  //TODO: hook this up to marker balloons with a "verify" button. Possibly add
+  //      multiselect flow as well. For now (June 2018) push verification on to
+  //      google sheet workflow
+
+return;
+}
+
+function showObs() {
+  map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+  map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+}
+
+
+
+function loadObs() {
+  //TODO: this function will use the function "readObs" to pull in all the obs
+  //      from the google sheet. Obs will be styled with "plain" marker for raw
+  //      and green dot for verified (as above)
+
+  allObs = readObs();
+  VerifiedSightingsJSON = allObs[0];
+  RawSightingsJSON = allObs[1];
+  //console.log(VerifiedSightingsJSON);
+  //console.log(RawSightingsJSON);
+  //TODO: refactor with proper promise behavior or call back to update the map on button click
+  // https://medium.com/@thejasonfile/how-node-and-javascript-handle-asynchronous-functions-7feb9fc8a610
+  // setTimeout(() => function () {
+  //   map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+  //   map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+  // }, 5000);
+  //map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+  //map.getSource('marker-json').setData(BlankMarkerJSON);
+  //map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+}
+
 
 function onMove(e) {
     var coords = e.lngLat;
@@ -541,6 +693,7 @@ function onMove(e) {
 
 
 map.on('load', function () {
+    loadObs();
 
     // add a source for the "click" marker
     map.addSource("marker-json", {
@@ -636,18 +789,22 @@ map.on('load', function () {
         },
         "properties": {
           "timestamp": String(clickTime.getTime()),
-          "humantime": clickTime.toString(),
+          "humantime": clickTime.toISOString(),
           "obsType": "raw",
           "verified": false
         }
       };
       MarkerJSON.features.push(point);
-      console.log(MarkerJSON)
+      //console.log(MarkerJSON)
       map.getSource('marker-json').setData(MarkerJSON);
 
       canvas.style.cursor = '';
     });
 
+    map.on('zoom', function () {
+      map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+      map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+    });
     // show coordinates as mouse moves
     map.on('mousemove', function (e) {
       //Print the coordinates of where the point had
@@ -657,6 +814,7 @@ map.on('load', function () {
       //buttonOverlay.style.display = 'block';
       latitude.innerHTML = e.lngLat.lat;
       longitude.innerHTML = e.lngLat.lng;
+
        // +
        //                         '<br />Latitude: ' + e.lngLat.lat +
        //                         '<br /><input type="button" value="Add Raw" id="addRawButton">';

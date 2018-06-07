@@ -16,11 +16,11 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
 
-<!--	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
 
 	<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
--->
+
 </head>
 <body>
 <style>
@@ -39,53 +39,61 @@
 
 var map = L.map('mapid').setView([48.58840868861914,-123.04481506347655], 9);
 var drawnItems = L.featureGroup().addTo(map);
-var Esri_OceanBasemap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}', {
-	attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
-	maxZoom: 13
-}).addTo(map);
 
-var OpenSeaMap = L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
-	attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'
+
+// var Esri_OceanBasemap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}', {
+// 	attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+// 	maxZoom: 13
+// }).addTo(map);
+
+var NOAANavChart = L.tileLayer('http://tileservice.charts.noaa.gov/tiles/50000_1/{z}/{x}/{y}.png', {
+	attribution: 'NOAA Chart Data courtesy of NOAA'
 }).addTo(map);
 
 //mapbox://styles/cpsarason/cjfvnf3vn06dp2rnk2kcq110a
-
-var MapBox = L.tileLayer('https://api.mapbox.com/styles/v1/cpsarason/cjfbctlpk34xd2rqkjrqnrq3y/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ',{
+//https://api.mapbox.com/styles/v1/cpsarason/cji3d2cji0olj2so1gd6llcn0/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ
+var MapBox = L.tileLayer('https://api.mapbox.com/styles/v1/cpsarason/cji3d2cji0olj2so1gd6llcn0/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ',{
  attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'
 }).addTo(map);
 
-//var locControl = L.control.locate().addTo(map);
+// var OpenSeaMap = L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
+// 	attribution: 'Map data: &copy; <a href="http://www.openseamap.org">OpenSeaMap</a> contributors'
+// }).addTo(map);
+
+
+
+var locControl = L.control.locate().addTo(map);
 
 L.control.layers({
-	'esri': Esri_OceanBasemap,
+	'NOAA Chart': NOAANavChart,
+	'MapBox Satellite': MapBox,
 }, {
-	 'navigation': OpenSeaMap,
-   'orcaTrack': MapBox,
-	 'drawlayer': drawnItems
+	 'MapBox': MapBox,
+
 }, {
 	 position: 'topleft',
 	 collapsed: false
  }).addTo(map);
 
-map.addControl(new L.Control.Draw({
-		edit: {
-				featureGroup: drawnItems,
-				poly: {
-						allowIntersection: false
-				}
-		},
-		draw: {
-				polygon: {
-						allowIntersection: false,
-						showArea: true
-				}
-		}
-}));
-
-map.on(L.Draw.Event.CREATED, function (event) {
-		var layer = event.layer;
-		drawnItems.addLayer(layer);
-});
+// map.addControl(new L.Control.Draw({
+// 		edit: {
+// 				featureGroup: drawnItems,
+// 				poly: {
+// 						allowIntersection: false
+// 				}
+// 		},
+// 		draw: {
+// 				polygon: {
+// 						allowIntersection: false,
+// 						showArea: true
+// 				}
+// 		}
+// }));
+//
+// map.on(L.Draw.Event.CREATED, function (event) {
+// 		var layer = event.layer;
+// 		drawnItems.addLayer(layer);
+// });
 
 
 
