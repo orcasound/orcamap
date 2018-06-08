@@ -130,8 +130,6 @@
     display: inline-block;
     height: 20px;
     border: none;
-    cursor: pointer;
-
 }
 
 .map-overlay-inner button:focus {
@@ -330,7 +328,7 @@ function readObs() {
 
   gapi.client.sheets.spreadsheets.values.get({
     spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
-    range: 'OrcaSoundObsTest!A2:I',
+    range: 'OrcaSoundObsTest!A2:J',
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -347,7 +345,7 @@ function readObs() {
             },
             "properties": {
                 "title": "Verified Sighting",
-                "time": row[0],
+                "time": row[1],
                 "user": row[3],
                 "note": row[9]
             }
@@ -506,7 +504,10 @@ var actionButtons = document.getElementById('action-buttons');
 var addObsButton = document.createElement('button');
 var getObsButton = document.createElement('button');
 var showObsButton = document.createElement('button');
+var clearObsButton = document.createElement('button');
 
+clearObsButton.innerHTML = "Clear New Markers";
+clearObsButton.addEventListener('click', function() { clearObs() });
 addObsButton.innerHTML = "Add Raw Observations";
 addObsButton.addEventListener('click', function() { addRawObs() });
 getObsButton.innerHTML = "Update From Google Sheet";
@@ -514,6 +515,7 @@ getObsButton.addEventListener('click', function() { loadObs() });
 showObsButton.innerHTML = "Refresh Markers";
 showObsButton.addEventListener('click', function() { showObs() });
 
+actionButtons.appendChild(clearObsButton);
 actionButtons.appendChild(addObsButton);
 actionButtons.appendChild(getObsButton);
 actionButtons.appendChild(showObsButton);
@@ -602,6 +604,27 @@ var BlankMarkerJSON = {
 //
 // actionButtons.appendChild(verifyObsButton);
 
+function clearObs() {
+
+  //TODO: there has to be a better way, but got this From
+  //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
+  //
+  //NOTE: This hack will go away when we hook up to InfluxDB for persistence
+  //console.log(MarkerJSON.features);
+
+  //console.log(MarkerJSON.features);
+  //console.log(RawSightingsJSON)
+
+  //write the raw obs to the Google Sheet
+  //RawSightingsJSON.features.forEach(writeObs);
+
+  //change markers --- this is kind of cheating b.c. we're only updating the local copy (e.g. not reading in from the sheet)
+
+  map.getSource('marker-json').setData(BlankMarkerJSON);
+  MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+
+}
+
 function addRawObs() {
 
   //TODO: there has to be a better way, but got this From
@@ -664,17 +687,17 @@ function loadObs() {
 }
 
 
-function onMove(e) {
-    var coords = e.lngLat;
-
-    // Set a UI indicator for dragging.
-    canvas.style.cursor = 'grabbing';
-
-    // Update the Point feature in `geojson` coordinates
-    // and call setData to the source layer `point` on it.
-    MarkerJSON.features[0].geometry.coordinates = [coords.lng, coords.lat];
-    map.getSource('marker-json').setData(MarkerJSON);
-}
+// function onMove(e) {
+//     var coords = e.lngLat;
+//
+//     // Set a UI indicator for dragging.
+//     canvas.style.cursor = 'grabbing';
+//
+//     // Update the Point feature in `geojson` coordinates
+//     // and call setData to the source layer `point` on it.
+//     MarkerJSON.features[0].geometry.coordinates = [coords.lng, coords.lat];
+//     map.getSource('marker-json').setData(MarkerJSON);
+// }
 
 // function onUp(e) {
 //     var coords = e.lngLat;
@@ -724,7 +747,7 @@ map.on('load', function () {
         "source":  "raw-sightings-json",
         "layout": {
             "icon-image": "marker-15",
-            "icon-size": 0.75,
+            "icon-size": 1.2,
         }
     }, "Raw Sightings");
 
@@ -740,7 +763,7 @@ map.on('load', function () {
         "source":  "verified-sightings-json",
         "paint": {
             "circle-color": "green",
-            "circle-radius": 5,
+            "circle-radius": 12,
         }
     }, "Verified Sightings");
 
@@ -777,33 +800,91 @@ map.on('load', function () {
     map.on('click','water',function (e) {
       //console.log(MarkerJSON.features);
       //console.log(e);
-      var clickTime = new Date();
-      point =  {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [
-            e.lngLat.lng,
-            e.lngLat.lat
-          ]
-        },
-        "properties": {
-          "timestamp": String(clickTime.getTime()),
-          "humantime": clickTime.toISOString(),
-          "obsType": "raw",
-          "verified": false
-        }
-      };
-      MarkerJSON.features.push(point);
-      //console.log(MarkerJSON)
-      map.getSource('marker-json').setData(MarkerJSON);
+      if (map.getCanvas().style.cursor !== 'pointer'){
+        var clickTime = new Date();
+        point =  {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              e.lngLat.lng,
+              e.lngLat.lat
+            ]
+          },
+          "properties": {
+            "timestamp": String(clickTime.getTime()),
+            "humantime": clickTime.toISOString(),
+            "obsType": "raw",
+            "verified": false
+          }
+        };
+        MarkerJSON.features.push(point);
+        //console.log(MarkerJSON)
+        map.getSource('marker-json').setData(MarkerJSON);
+      }
+        //canvas.style.cursor = '';
+    });
 
-      canvas.style.cursor = '';
+    // Create a popup, but don't add it to the map yet.
+    var verifiedPopup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false
+      });
+
+
+    map.on('touchstart','verified-sightings-json', function (e) {
+
+        var coordinates = e.features[0].geometry.coordinates.slice();
+        var description = "Time: " + e.features[0].properties.time + "<br>User: " + e.features[0].properties.user + "<br>Note: " + e.features[0].properties.note;
+
+        // Ensure that if the map is zoomed out such that multiple
+        // copies of the feature are visible, the popup appears
+        // over the copy being pointed to.
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+        verifiedPopup.options.closeButton = true;
+        verifiedPopup.setLngLat(coordinates)
+            .setHTML(description)
+            .addTo(map);
+      });
+
+
+    map.on('click','verified-sightings-json', function (e) {
+      var coordinates = e.features[0].geometry.coordinates.slice();
+      var description = "Time: " + e.features[0].properties.time + "<br>User: " + e.features[0].properties.user + "<br>Note: " + e.features[0].properties.note;
+
+      // Ensure that if the map is zoomed out such that multiple
+      // copies of the feature are visible, the popup appears
+      // over the copy being pointed to.
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
+
+      verifiedPopup.setLngLat(coordinates)
+          .setHTML(description)
+          .addTo(map);
+    });
+
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    map.on('mouseenter', 'verified-sightings-json', function () {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'verified-sightings-json', function () {
+        map.getCanvas().style.cursor = 'crosshair';
+        verifiedPopup.remove();
     });
 
     map.on('zoom', function () {
       map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
       map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+      verifiedPopup.remove();
+    });
+
+    map.on('move', function () {
+      verifiedPopup.remove();
     });
     // show coordinates as mouse moves
     map.on('mousemove', function (e) {
