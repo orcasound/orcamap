@@ -468,13 +468,13 @@ function writeObs(obs) {
 <div id="map"></div>
 <div id="map-overlay" class="map-overlay top">
   <div id="coordinates" class="map-overlay-inner">
-    <fieldset>
+    <!-- <fieldset>
       Latitude: <div id="latitude"></div>
       Longitude: <div id="longitude"></div>
-    </fieldset>
+    </fieldset> -->
 
     <fieldset>
-      <label>Actions</label>
+      <!-- <label>Actions</label> -->
       <div id="action-buttons"></div>
     </fieldset>
   </div>
@@ -495,8 +495,8 @@ mapboxgl.accessToken = mapbox_apikey;
 var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/light-v9',
-    zoom: 13,
-    center: [-122.3383, 47.6027]
+    zoom: 7.25,
+    center: [-123.2, 47.95]
 });
 
 var actionButtons = document.getElementById('action-buttons');
