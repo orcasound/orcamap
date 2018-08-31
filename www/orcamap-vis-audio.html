@@ -342,8 +342,9 @@ function readObs() {
       for (i = 0; i < range.values.length; i++) {
         var row = range.values[i];
         // Print columns A through D, which correspond to indices 0-3.
-        console.log(row);
-        if (row[8] === "yes" || row[8] === "Yes") {
+        //console.log(row);
+        //console.log(row[7]);
+        if (row[7] === "yes" || row[7] === "Yes") {
           var newObs = {
             "type": "Feature",
             "geometry": {
@@ -358,7 +359,7 @@ function readObs() {
             }
           }
           gsheetVerifiedObs.features.push(newObs);
-          console.log(newObs);
+          //console.log(newObs);
         }
         else if  (row[2] === "visual") {
           var newRawObs = {
@@ -415,7 +416,7 @@ function writeObs(obs) {
         obs.properties.humantime,
         "visual",
         gapi.auth2.getAuthInstance().currentUser.Ab.w3.U3,
-        "<YYYY-MM-DDTHH:MM:SSZZZ>",
+        "Enter <YYYY-MM-DDTHH:MM:SSZZZ>",
         obs.geometry.coordinates[0],
         obs.geometry.coordinates[1]
       ],
