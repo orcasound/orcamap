@@ -263,8 +263,13 @@ function appendPre(message) {
 
 function listObs() {
   gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: '1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E',
+    // OceanHackWeek sheet
+    spreadsheetId: '1F5nnzIK04bucpsct7IBlGegome3T-mp26bKfZ9hKSwQ',
     range: 'OrcaSoundObsTest!A2:I',
+
+    // OrcaSound Sheet
+    // spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
+    // range: 'OrcaSoundObsTest!A2:I',
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -327,8 +332,13 @@ function readObs() {
 
 
   gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: '1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E',
-    range: 'OrcaSoundObsTest!A2:J',
+    // OceanHackWeek sheet
+    spreadsheetId: '1F5nnzIK04bucpsct7IBlGegome3T-mp26bKfZ9hKSwQ',
+    range: 'OrcaSoundObsTest!A2:I',
+
+    // OrcaSound Sheet
+    // spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
+    // range: 'OrcaSoundObsTest!A2:I',
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -409,8 +419,13 @@ function writeObs(obs) {
 
     //TODO: update to bulk update, rows are being dropped 5/31/2018
     gapi.client.sheets.spreadsheets.values.append({
-       spreadsheetId: '1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E',
-       range: 'OrcaSoundObsTest!A2:E',
+      // OceanHackWeek sheet
+      spreadsheetId: '1F5nnzIK04bucpsct7IBlGegome3T-mp26bKfZ9hKSwQ',
+      range: 'OrcaSoundObsTest!A2:I',
+
+      // OrcaSound Sheet
+      // spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
+      // range: 'OrcaSoundObsTest!A2:I',
        valueInputOption: 'USER_ENTERED',
        insertDataOption: 'INSERT_ROWS',
        resource: body

@@ -183,6 +183,12 @@ var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"
 // included, separated by spaces.
 var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 
+// Spreadsheet ID and cell range for retrieval of obsType
+var WORKBOOKID = "1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E";
+var VISUALSHEET = "OrcaSoundVisualObs";
+var ACOUSTICSHEET = "OrcaSoundAcousticObs";
+var RANGE = "A2:I";
+
 var authorizeButton = document.getElementById('authorize-button');
 var signoutButton = document.getElementById('signout-button');
 
@@ -263,8 +269,8 @@ function appendPre(message) {
 
 function listObs() {
   gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: '1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E',
-    range: 'OrcaSoundObsTest!A2:I',
+    spreadsheetId: WORKBOOKID,
+    range: VISUALSHEET + '!' + RANGE,
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -327,8 +333,8 @@ function readObs() {
 
 
   gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: '1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E',
-    range: 'OrcaSoundObsTest!A2:J',
+    spreadsheetId: WORKBOOKID,
+    range: VISUALSHEET + '!' + RANGE,
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -336,35 +342,36 @@ function readObs() {
       for (i = 0; i < range.values.length; i++) {
         var row = range.values[i];
         // Print columns A through D, which correspond to indices 0-3.
+        console.log(row);
         if (row[8] === "yes" || row[8] === "Yes") {
           var newObs = {
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [parseFloat(row[4]),parseFloat(row[5])]
+                "coordinates": [parseFloat(row[5]),parseFloat(row[6])]
             },
             "properties": {
                 "title": "Verified Sighting",
-                "time": row[1],
+                "time": row[4],
                 "user": row[3],
-                "note": row[9]
+                "note": row[8]
             }
           }
           gsheetVerifiedObs.features.push(newObs);
-          //console.log(newObs);
+          console.log(newObs);
         }
         else if  (row[2] === "visual") {
           var newRawObs = {
             "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [parseFloat(row[4]),parseFloat(row[5])]
+                "coordinates": [parseFloat(row[5]),parseFloat(row[6])]
             },
             "properties": {
                 "title": "Unverified Sighting",
-                "time": row[0],
+                "observation time": row[4],
                 "user": row[3],
-                "note": row[9]
+                "note": row[8]
             }
           }
           gsheetRawObs.features.push(newRawObs);
@@ -392,12 +399,23 @@ function writeObs(obs) {
 
     //TODO: this user from oauth is badly hardwired. need to figure out a better
     //      way to id users
+    //TODO: add hooks here for other observation types, categories
+    //
+    //     The string format for entered dates should be: YYYY-MM-DDTHH:mm:ss.sssZ, where:
+    //
+        // YYYY-MM-DD – is the date: year-month-day.
+        // The character "T" is used as the delimiter.
+        // HH:mm:ss.sss – is the time: hours, minutes, seconds and milliseconds.
+        // The optional 'Z' part denotes the time zone in the format +-hh:mm. A
+        // single letter Z that would mean UTC+0.
+
     var values = [
       [
         obs.properties.timestamp,
         obs.properties.humantime,
         "visual",
         gapi.auth2.getAuthInstance().currentUser.Ab.w3.U3,
+        "<YYYY-MM-DDTHH:MM:SSZZZ>",
         obs.geometry.coordinates[0],
         obs.geometry.coordinates[1]
       ],
@@ -409,8 +427,8 @@ function writeObs(obs) {
 
     //TODO: update to bulk update, rows are being dropped 5/31/2018
     gapi.client.sheets.spreadsheets.values.append({
-       spreadsheetId: '1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E',
-       range: 'OrcaSoundObsTest!A2:E',
+      spreadsheetId: WORKBOOKID,
+      range: VISUALSHEET + '!' + RANGE,
        valueInputOption: 'USER_ENTERED',
        insertDataOption: 'INSERT_ROWS',
        resource: body
@@ -505,15 +523,21 @@ var addObsButton = document.createElement('button');
 var getObsButton = document.createElement('button');
 var showObsButton = document.createElement('button');
 var clearObsButton = document.createElement('button');
+var googleSheetButton = document.createElement('button');
 
 clearObsButton.innerHTML = "Clear New Markers";
 clearObsButton.addEventListener('click', function() { clearObs() });
 addObsButton.innerHTML = "Add Raw Observations";
 addObsButton.addEventListener('click', function() { addRawObs() });
-getObsButton.innerHTML = "Update From Google Sheet";
+getObsButton.innerHTML = "Pull From Google Sheet";
 getObsButton.addEventListener('click', function() { loadObs() });
 showObsButton.innerHTML = "Refresh Markers";
 showObsButton.addEventListener('click', function() { showObs() });
+
+var googleSheetURL = "https://docs.google.com/spreadsheets/d/" + WORKBOOKID;
+googleSheetButton.innerHTML = "Open Google Sheet";
+googleSheetButton.addEventListener('click', function() { window.open(googleSheetURL,'_blank') });
+
 
 actionButtons.appendChild(clearObsButton);
 actionButtons.appendChild(addObsButton);
@@ -522,6 +546,8 @@ actionButtons.appendChild(showObsButton);
 
 actionButtons.appendChild(authorizeButton);
 actionButtons.appendChild(signoutButton);
+
+actionButtons.appendChild(googleSheetButton);
 
 var canvas = map.getCanvasContainer();
 
@@ -856,6 +882,14 @@ map.on('load', function () {
     //     accessToken: mapboxgl.accessToken
     // }));
 
+    //add search box to the map
+    map.addControl(new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      // limit results to the geographic bounds representing the region of
+      // the Salish Sea
+      //bbox: [-119.8, 44.9, -129.44, 51.5],
+    }));
+
     // Add zoom and rotation controls to the map.
     map.addControl(new mapboxgl.NavigationControl());
     // Add geolocate control to the map.
@@ -865,6 +899,8 @@ map.on('load', function () {
       },
       trackUserLocation: true
     }));
+
+
 
     map.on('click','water',function (e) {
       //console.log(MarkerJSON.features);
