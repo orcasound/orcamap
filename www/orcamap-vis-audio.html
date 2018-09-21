@@ -26,7 +26,7 @@
     </style>
 </head>
 <body>
-
+<!--Nav Bar HTML -->
 <!--[if lte IE 9]>
         <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
     <![endif]-->
@@ -80,8 +80,7 @@
 <script src="js/jquery.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/rsvp.min.js"></script>
-<!-- <script src="js/kinvey-html5-sdk.min.js"></script>
-<script src="js/app.js"></script> -->
+<script src="js/app.js"></script>
 <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js"></script>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css" type="text/css" />
 <style>
@@ -98,7 +97,7 @@
 }
 
 .map-overlay .map-overlay-inner {
-    background: rgba(0,0,0,0.6);
+    background: rgba(0, 0, 0, 0.6);
     color: #000;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
     border-radius: 3px;
@@ -147,21 +146,6 @@
     top: 65px;
 }
 </style>
-<!-- <div class='map-overlay top'>
-    <div class='map-overlay-inner'>
-        <fieldset>
-            <label>Select layer</label>
-            <select id='layer' name='layer'>
-                <option value='water'>Water</option>
-                <option value='building'>Buildings</option>
-            </select>
-        </fieldset>
-        <fieldset>
-            <label>Choose a color</label>
-            <div id='swatches'></div>
-        </fieldset>
-    </div>
-</div> -->
 
 <!--Add buttons to initiate auth sequence and sign out-->
 
@@ -169,34 +153,21 @@
 <button id="authorize-button" style="display: none;">Authorize</button>
 <button id="signout-button" style="display: none;">Sign Out</button>
 
+<!--END static HTML-->
+
 <script>
-
-// ############### GOOGLE SHEETS API QUICKSTART ####################
-// Client ID and API key from the Developer Console
-var CLIENT_ID = '1074262146370-umh810j84cdk47ocqf0f28v65gdmriue.apps.googleusercontent.com';
-var API_KEY = 'AIzaSyC1stf2UedjvWn3C_rS4cC8Rhb4BwcjugA';
-
-// Array of API discovery doc URLs for APIs used by the quickstart
-var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
-
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
-
-// Spreadsheet ID and cell range for retrieval of obsType
-var WORKBOOKID = "1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E";
-var VISUALSHEET = "OrcaSoundVisualObs";
-var ACOUSTICSHEET = "OrcaSoundAcousticObs";
-var RANGE = "A2:I";
 
 var authorizeButton = document.getElementById('authorize-button');
 var signoutButton = document.getElementById('signout-button');
 
-
+var gSheetJSON = app.googleSheetSetup();
 
 /**
  *  On load, called to load the auth2 library and API client library.
  */
+// *****SECTION: GOOGLE AUTH*******
+// TODO: This section should be moved to app.js
+
 function handleClientLoad() {
   gapi.load('client:auth2', initClient);
 }
@@ -207,10 +178,10 @@ function handleClientLoad() {
  */
 function initClient() {
   gapi.client.init({
-    apiKey: API_KEY,
-    clientId: CLIENT_ID,
-    discoveryDocs: DISCOVERY_DOCS,
-    scope: SCOPES
+    apiKey: gSheetJSON.API_KEY,
+    clientId: gSheetJSON.CLIENT_ID,
+    discoveryDocs: gSheetJSON.DISCOVERY_DOCS,
+    scope: gSheetJSON.SCOPES
   }).then(function () {
     // Listen for sign-in state changes.
     gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
@@ -262,15 +233,16 @@ function appendPre(message) {
   var textContent = document.createTextNode(message + '\n');
   pre.appendChild(textContent);
 }
-
+// ***** END GOOGLE AUTH *******
 
 // this was adapted from https://developers.google.com/sheets/api/quickstart/js#step_1_turn_on_the_api_name
 // for orcaSound use case
-
+// ** SECTION Google Sheet interaction **
+// TODO: I think these best belong in app.js
 function listObs() {
   gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: WORKBOOKID,
-    range: VISUALSHEET + '!' + RANGE,
+    spreadsheetId: gSheetJSON.WORKBOOKID,
+    range: gSheetJSON.VISUALSHEET + '!' + gSheetJSON.RANGE,
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -333,8 +305,8 @@ function readObs() {
 
 
   gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: WORKBOOKID,
-    range: VISUALSHEET + '!' + RANGE,
+    spreadsheetId: gSheetJSON.WORKBOOKID,
+    range: gSheetJSON.VISUALSHEET + '!' + gSheetJSON.RANGE,
   }).then(function(response) {
     var range = response.result;
     if (range.values.length > 0) {
@@ -428,8 +400,8 @@ function writeObs(obs) {
 
     //TODO: update to bulk update, rows are being dropped 5/31/2018
     gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId: WORKBOOKID,
-      range: VISUALSHEET + '!' + RANGE,
+      spreadsheetId: gSheetJSON.WORKBOOKID,
+      range: gSheetJSON.VISUALSHEET + '!' + gSheetJSON.RANGE,
        valueInputOption: 'USER_ENTERED',
        insertDataOption: 'INSERT_ROWS',
        resource: body
@@ -441,43 +413,7 @@ function writeObs(obs) {
   }
 }
 
-
-
-
-
-  // // test to make sure feature has an associated timestamp before adding it
-  // if (obs.properties.timestamp) {
-  //   //console.log('obs has time parameter: ' + obs.properties.time);
-  //
-  //   //TODO: this user from oauth is badly hardwired. need to figure out a better
-  //   //      way to id users
-  //   var values = [
-  //     [
-  //       obs.properties.timestamp,
-  //       obs.properties.humantime,
-  //       "visual",
-  //       gapi.auth2.getAuthInstance().currentUser.Ab.w3.U3,
-  //       obs.geometry.coordinates[0],
-  //       obs.geometry.coordinates[1]
-  //     ],
-  //     // Additional rows ...
-  //   ];
-  //   var body = {
-  //     values: values
-  //   };
-  //
-  //   gapi.client.sheets.spreadsheets.values.append({
-  //      spreadsheetId: '17iOHfRAVa3MUPPZcGEMYNIyk_RlSER5zYcITPcNVRwg',
-  //      range: 'OrcaSoundObsTest!A2:E',
-  //      valueInputOption: 'USER_ENTERED',
-  //      insertDataOption: 'INSERT_ROWS',
-  //      resource: body
-  //   }).then((response) => {
-  //     var result = response.result;
-  //     //console.log(response);
-  //     //console.log(`${result.updatedCells} cells updated.`);
-  //   });
-
+// ** END SECTION Sheet Interaction **
 </script>
 <script async defer src="https://apis.google.com/js/api.js"
       onload="this.onload=function(){};handleClientLoad()"
@@ -500,13 +436,8 @@ function writeObs(obs) {
 </div>
 <div id="obsListing"></div>
 
-
-
 <script>
-
-
 // ################### MAPBOX RELATED STUFF ################################
-
 var mapbox_apikey = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ';
 
 mapboxgl.accessToken = mapbox_apikey;
@@ -535,7 +466,9 @@ getObsButton.addEventListener('click', function() { loadObs() });
 showObsButton.innerHTML = "Refresh Markers";
 showObsButton.addEventListener('click', function() { showObs() });
 
-var googleSheetURL = "https://docs.google.com/spreadsheets/d/" + WORKBOOKID;
+
+
+var googleSheetURL = "https://docs.google.com/spreadsheets/d/" + gSheetJSON.WORKBOOKID;
 googleSheetButton.innerHTML = "Open Google Sheet";
 googleSheetButton.addEventListener('click', function() { window.open(googleSheetURL,'_blank') });
 
@@ -552,6 +485,7 @@ actionButtons.appendChild(googleSheetButton);
 
 var canvas = map.getCanvasContainer();
 
+// TODO: This placeholder JSON should move to app.js
 var RawSightingsJSON = {
     "type": "FeatureCollection",
     "features": [{
@@ -616,20 +550,6 @@ var BlankMarkerJSON = {
 };
 
 
-// var addObsButton = document.createElement('button');
-// addObsButton.addEventListener('click'), function() {
-//   addRawObs();
-// };
-//
-// actionButtons.appendChild(addObsButton);
-//
-// var verifyObsButton = document.createElement('button');
-//
-// verifyObsButton.addEventListener('click'), fuction() {
-//   verifyRawObs();
-// };
-//
-// actionButtons.appendChild(verifyObsButton);
 
 function clearObs() {
 
@@ -700,47 +620,8 @@ function loadObs() {
   allObs = readObs();
   VerifiedSightingsJSON = allObs[0];
   RawSightingsJSON = allObs[1];
-  //console.log(VerifiedSightingsJSON);
-  //console.log(RawSightingsJSON);
-  //TODO: refactor with proper promise behavior or call back to update the map on button click
-  // https://medium.com/@thejasonfile/how-node-and-javascript-handle-asynchronous-functions-7feb9fc8a610
-  // setTimeout(() => function () {
-  //   map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
-  //   map.getSource('raw-sightings-json').setData(RawSightingsJSON);
-  // }, 5000);
-  //map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
-  //map.getSource('marker-json').setData(BlankMarkerJSON);
-  //map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+  
 }
-
-
-// function onMove(e) {
-//     var coords = e.lngLat;
-//
-//     // Set a UI indicator for dragging.
-//     canvas.style.cursor = 'grabbing';
-//
-//     // Update the Point feature in `geojson` coordinates
-//     // and call setData to the source layer `point` on it.
-//     MarkerJSON.features[0].geometry.coordinates = [coords.lng, coords.lat];
-//     map.getSource('marker-json').setData(MarkerJSON);
-// }
-
-// function onUp(e) {
-//     var coords = e.lngLat;
-//
-//     // Print the coordinates of where the point had
-//     // finished being dragged to on the map.
-//     coordinates.style.display = 'block';
-//     coordinates.innerHTML = 'Longitude: ' + coords.lng + '<br />Latitude: ' + coords.lat;
-//     canvas.style.cursor = '';
-//
-//     // Unbind mouse/touch events
-//     map.off('mousemove', onMove);
-//     map.off('touchmove', onMove);
-// }
-
-
 
 map.on('load', function () {
     loadObs();
@@ -1007,46 +888,6 @@ map.on('load', function () {
        //                         '<br /><input type="button" value="Add Raw" id="addRawButton">';
     });
 
-
-    // // Create a popup, but don't add it to the map yet.
-    // var popup = new mapboxgl.Popup({
-    //     closeButton: true,
-    //     closeOnClick: false
-    // });
-
-
-
-    // // Change the cursor to a pointer when the mouse is over the places layer.
-    // map.on('mouseenter', 'marker-json', function (e) {
-    //     map.setPaintProperty('marker-json', 'circle-color', '#3bb2d0');
-    //     canvas.style.cursor = 'pointer';
-    // });
-
-    // // Change it back to a pointer when it leaves.
-    // map.on('mouseleave', 'marker-json', function () {
-    //     map.setPaintProperty('marker-json', 'circle-color', 'red');
-    //     canvas.style.cursor = '';
-    //     //popup.remove();
-    // });
-
-    // // on mousedown, prevent the default map drag behavior
-    // map.on('mousedown', 'marker-json', function(e) {
-    //     //console.log(e);
-    //     //e.preventDefault();
-    //     canvas.style.cursor = 'grab';
-    //     map.on('mousemove', onMove);
-    //     map.on('mouseup',onUp);
-    // });
-    //
-    // map.on('touchstart', 'marker-json', function(e) {
-    //     if (e.points.length !== 1) return;
-    //
-    //     // Prevent the default map drag behavior.
-    //     //e.preventDefault();
-    //
-    //     map.on('touchmove', onMove);
-    //     map.once('touchend', onUp);
-    // });
 });
 </script>
 
