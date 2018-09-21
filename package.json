@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/cpsarason/orcaSoundViz#readme",
   "dependencies": {
-     "express": "4.14.1"
+    "express": "4.14.1"
   }
 }
