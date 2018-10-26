@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Orcamap, a crowd-sourced Orca mapping project</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/todc-bootstrap.min.css">
+    <link rel="stylesheet" href="css/app.css">
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js'></script>
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css' type='text/css' />
+
+</head>
+<body>
+
+<script src="js/app.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css" type="text/css" />
+<style>
+
+body { margin:0; padding:0; }
+
+#map { position:absolute; top:0px; bottom:0; width:100%; }
+
+.map-overlay {
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    width: 200px;
+    top: 0px;
+    left: 0;
+    padding: 10px;
+
+}
+
+.map-overlay .map-overlay-inner {
+    background: rgba(0, 0, 0, 0.6);
+    color: #000;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.map-overlay-inner fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 10px;
+}
+
+.map-overlay-inner fieldset:last-child {
+    margin: 0;
+}
+
+.map-overlay-inner select {
+    width: 100%;
+}
+
+.map-overlay-inner label {
+    display: block;
+    font-weight: bold;
+    margin: 0 0 5px;
+}
+
+.map-overlay-inner button {
+    display: inline-block;
+    height: 20px;
+    border: none;
+}
+
+.map-overlay-inner button:focus {
+    outline: none;
+}
+
+.map-overlay-inner button:hover {
+    box-shadow:inset 0 0 0 3px rgba(0, 0, 0, 0.10);
+}
+
+#geocoder-container > div {
+    min-width:50%;
+    margin-left:25%;
+    position: sticky;
+    top: 15px;
+}
+</style>
+
+<!--Add buttons to initiate auth sequence and sign out-->
+
+
+<button id="authorize-button" style="display: none;">Authorize</button>
+<button id="signout-button" style="display: none;">Sign Out</button>
+
+<!--Add Map specific div tags to the DOM-->
+<div id="map"></div>
+<div id="map-overlay" class="map-overlay top">
+  <div id="coordinates" class="map-overlay-inner">
+    <!-- <fieldset>
+      Latitude: <div id="latitude"></div>
+      Longitude: <div id="longitude"></div>
+    </fieldset> -->
+
+    <fieldset>
+      <!-- <label>Actions</label> -->
+      <div id="action-buttons"></div>
+    </fieldset>
+  </div>
+</div>
+<div id="obsListing"></div>
+
+<!--END static HTML-->
+<script async defer src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};handleClientLoad()"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()">
+</script>
+<script>
+
+var authorizeButton = document.getElementById('authorize-button');
+var signoutButton = document.getElementById('signout-button');
+
+var gSheetJSON = app.googleSheetSetup();
+
+
+// ################### MAPBOX RELATED STUFF ################################
+const mapbox_apikey = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ';
+
+mapboxgl.accessToken = mapbox_apikey;
+
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v9',
+    zoom: 6.5,
+    center: [-123.35, 48.41]
+});
+
+const actionButtons = document.getElementById('action-buttons');
+
+const addObsButton = document.createElement('button');
+const getObsButton = document.createElement('button');
+const showObsButton = document.createElement('button');
+const clearObsButton = document.createElement('button');
+const googleSheetButton = document.createElement('button');
+
+clearObsButton.innerHTML = "Clear New Markers";
+clearObsButton.addEventListener('click', function() { clearObs() });
+addObsButton.innerHTML = "Add Raw Observations";
+addObsButton.addEventListener('click', function() { addRawObs() });
+getObsButton.innerHTML = "Pull From Google Sheet";
+getObsButton.addEventListener('click', function() { loadObs() });
+showObsButton.innerHTML = "Refresh Markers";
+showObsButton.addEventListener('click', function() { showObs() });
+
+
+
+const googleSheetURL = "https://docs.google.com/spreadsheets/d/" + gSheetJSON.WORKBOOKID;
+googleSheetButton.innerHTML = "Open Google Sheet";
+googleSheetButton.addEventListener('click', function() { window.open(googleSheetURL,'_blank') });
+
+
+actionButtons.appendChild(clearObsButton);
+actionButtons.appendChild(addObsButton);
+actionButtons.appendChild(getObsButton);
+actionButtons.appendChild(showObsButton);
+
+actionButtons.appendChild(authorizeButton);
+actionButtons.appendChild(signoutButton);
+
+actionButtons.appendChild(googleSheetButton);
+
+var canvas = map.getCanvasContainer();
+
+// TODO: This placeholder JSON should move to app.js
+var RawSightingsJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": []
+        },
+        "properties": {
+            "title": "Raw Sighting",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+
+var VerifiedSightingsJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": []
+        },
+        "properties": {
+            "title": "Verified Sighting",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+
+var MarkerJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": []
+        },
+        "properties": {
+            "title": "MarkerClick",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+
+// we want this one to be immutable
+const BlankMarkerJSON = {
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": []
+        },
+        "properties": {
+            "title": "MarkerClick",
+            //"icon": "marker",
+            //"fill-color": "#3887be"
+        }
+    }]
+};
+
+
+function loadObs() {
+  //TODO: this function will use the function "readObs" to pull in all the obs
+  //      from the google sheet. Obs will be styled with "plain" marker for raw
+  //      and green dot for verified (as above)
+
+  allObs = app.readObs();
+  VerifiedSightingsJSON = allObs[0];
+  RawSightingsJSON = allObs[1];
+  
+}
+
+function clearObs() {
+
+  //change markers --- this is kind of cheating b.c. we're only updating the local copy (e.g. not reading in from the sheet)
+
+  map.getSource('marker-json').setData(BlankMarkerJSON);
+  MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+
+}
+
+function addRawObs() {
+
+  //TODO: there has to be a better way, but got this From
+  //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
+  //
+  //NOTE: This hack will go away when we hook up to InfluxDB for persistence
+  //console.log(MarkerJSON.features);
+  RawSightingsJSON = JSON.parse(JSON.stringify({
+      "type" : "FeatureCollection",
+      "features": [... RawSightingsJSON.features, ... MarkerJSON.features]
+      }));
+  //console.log(MarkerJSON.features);
+  //console.log(RawSightingsJSON)
+
+  //write the raw obs to the Google Sheet, writeObs() is in ./js/app.js file
+  RawSightingsJSON.features.forEach(app.writeObs);
+
+  //change markers --- this is kind of cheating b.c. we're only updating the local copy (e.g. not reading in from the sheet)
+  map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+  map.getSource('marker-json').setData(BlankMarkerJSON);
+  MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+  map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+
+}
+
+function verifyRawObs() {
+  //TODO: hook this up to marker balloons with a "verify" button. Possibly add
+  //      multiselect flow as well. For now (June 2018) push verification on to
+  //      google sheet workflow
+
+return;
+}
+
+function showObs() {
+  map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+  map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+}
+
+map.on('load', function () {
+    loadObs();
+
+    // add a source for the "click" marker
+    map.addSource("marker-json", {
+      "type": "geojson",
+      "data": MarkerJSON
+    });
+
+    map.addLayer({
+        "id": "marker-json",
+        "type": "circle",
+        "source": "marker-json",
+        "paint": {
+            "circle-color": "red",
+            "circle-radius": 10,
+        }
+    }, "Raw Sightings");
+
+    // add a source for the "raw" sightings
+    map.addSource("raw-sightings-json", {
+      "type": "geojson",
+      "data": RawSightingsJSON,
+      cluster: true,
+      clusterMaxZoom: 15,
+      clusterRadius: 50
+    });
+
+    //add a layer for the "raw" sighting" clusters
+    map.addLayer({
+        id: "raw-sightings-json-cluster",
+        type: "circle",
+        source:  "raw-sightings-json",
+        filter: ["has","point_count"],
+        paint: {
+            "circle-color": "grey",
+            "circle-radius": 30
+          },
+    }, "Raw Sightings Cluster");
+
+    map.addLayer({
+        "id": "raw-sightings-cluster-count",
+        "type": "symbol",
+        "source":  "raw-sightings-json",
+        filter: ["has","point_count"],
+        layout: {
+          "text-field": "{point_count_abbreviated}",
+          "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+          "text-size": 12
+        }
+    }, "Verified Sightings Count");
+
+
+    //add a layer for the "raw" sightings that come after a point is "clicked"
+    map.addLayer({
+        "id": "raw-sightings-json",
+        "type": "symbol",
+        "source":  "raw-sightings-json",
+        filter: ["!has","point_count"],
+        "layout": {
+            "icon-image": "marker-15",
+            "icon-size": 1.2,
+        }
+    }, "Raw Sightings");
+
+
+    map.addSource("verified-sightings-json", {
+      "type": "geojson",
+      "data": VerifiedSightingsJSON,
+    //   cluster: true,
+    //   clusterMaxZoom: 15,
+    //   clusterRadius: 50
+    });
+
+    // //add a layer for the "verified" sightings that come after a point is "added"
+    // map.addLayer({
+    //     id: "verified-sightings-json-cluster",
+    //     type: "circle",
+    //     source:  "verified-sightings-json",
+    //     filter: ["has","point_count"],
+    //     paint: {
+    //         "circle-color": "green",
+    //         "circle-radius": 30
+
+    //         // [
+    //         //   "step",
+    //         //   ["get", "point_count"],
+    //         //   20,
+    //         //   2,
+    //         //   30,
+    //         //   5,
+    //         //   40
+    //         // ]
+    //     }
+    // }, "Verified Sightings Cluster");
+
+    // //add a text layer for the "verified" sighting clusters
+    // map.addLayer({
+    //     "id": "verified-sightings-cluster-count",
+    //     "type": "symbol",
+    //     "source":  "verified-sightings-json",
+    //     filter: ["has","point_count"],
+    //     layout: {
+    //       "text-field": "{point_count_abbreviated}",
+    //       "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+    //       "text-size": 12
+    //     }
+    // }, "Verified Sightings Count");
+
+    // //add a layer for the "verified" sightings that come after a point is "added"
+    // map.addLayer({
+    //     "id": "verified-sightings-json",
+    //     "type": "circle",
+    //     "source":  "verified-sightings-json",
+    //     //filter: ["!has","point_count"],
+    //     "paint": {
+    //         "circle-color": "green",
+    //         "circle-radius": 5,
+    //     }
+    // }, "Verified Sightings");
+
+    // add attribution layer
+    map.addLayer({
+        "id": "attribution-layer",
+        "type": "circle",
+        "source": {
+            "type": "geojson",
+            "data": {
+                "type": "Feature",
+                "properties": {},
+                "geometry": null
+            }
+        }
+    });
+
+    //add a heatmap layer for orca sightings
+    map.addLayer({
+        "id": "orca-heat",
+        "type": "heatmap",
+        "source": "verified-sightings-json",
+        "maxzoom": 12,
+        "paint": {
+            // Increase the heatmap weight based on frequency and property magnitude
+            "heatmap-weight": [
+                "interpolate",
+                ["linear"],
+                ["get", "time"],
+                0, 0,
+                6, 1
+            ],
+            // Increase the heatmap color weight weight by zoom level
+            // heatmap-intensity is a multiplier on top of heatmap-weight
+            "heatmap-intensity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0, 1,
+                14, 3
+            ],
+            // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
+            // Begin color ramp at 0-stop with a 0-transparancy color
+            // to create a blur-like effect.
+            "heatmap-color": [
+                "interpolate",
+                ["linear"],
+                ["heatmap-density"],
+                0, "rgba(33,102,172,0)",
+                0.2, "rgb(103,169,207)",
+                0.4, "rgb(209,229,240)",
+                0.6, "rgb(253,219,199)",
+                0.8, "rgb(239,138,98)",
+                1, "rgb(178,24,43)"
+            ],
+            // Adjust the heatmap radius by zoom level
+            "heatmap-radius": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0, 10,
+                10, 50
+            ],
+            // Transition from heatmap to circle layer by zoom level
+            "heatmap-opacity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7, 1,
+                10, 0
+            ],
+        }
+
+    }, 'waterway-label');
+
+    map.addLayer({
+        "id": "orca-point",
+        "type": "circle",
+        "source": "verified-sightings-json",
+        "minzoom": 7,
+        "paint": {
+            // Size circle radius by earthquake magnitude and zoom level
+            "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7, [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "time"],
+                    1, 1,
+                    6, 4
+                ],
+                16, [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "time"],
+                    1, 5,
+                    6, 50
+                ]
+            ],
+            // Color circle by earthquake magnitude
+            "circle-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "time"],
+                1, "rgba(33,102,172,0)",
+                2, "rgb(103,169,207)",
+                3, "rgb(209,229,240)",
+                4, "rgb(253,219,199)",
+                5, "rgb(239,138,98)",
+                6, "rgb(178,24,43)"
+            ],
+            "circle-stroke-color": "white",
+            "circle-stroke-width": 1,
+            // Transition from heatmap to circle layer by zoom level
+            "circle-opacity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7, 0,
+                9, 1
+            ]
+        }
+    }, 'waterway-label');
+
+    map.style.sourceCaches['attribution-layer']._source.attribution = "&copy; NOAA <a href='https://tidesandcurrents.noaa.gov/' target='_blank'>CO-OPS</a> and <a href='https://coast.noaa.gov/digitalcoast/tools/slr' target='_blank'>Office for Coastal Management</a>";
+
+    // TODO: add search box to map?
+    // map.addControl(new MapboxGeocoder({
+    //     accessToken: mapboxgl.accessToken
+    // }));
+
+    //add search box to the map
+    map.addControl(new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      // limit results to the geographic bounds representing the region of
+      // the Salish Sea
+      //bbox: [-119.8, 44.9, -129.44, 51.5],
+    }));
+
+    // Add zoom and rotation controls to the map.
+    map.addControl(new mapboxgl.NavigationControl());
+    // Add geolocate control to the map.
+    map.addControl(new mapboxgl.GeolocateControl({
+      positionOptions: {
+          enableHighAccuracy: true
+      },
+      trackUserLocation: true
+    }));
+
+
+
+    map.on('click','water',function (e) {
+      //console.log(MarkerJSON.features);
+      //console.log(e);
+      if (map.getCanvas().style.cursor !== 'pointer'){
+        var clickTime = new Date();
+        point =  {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              e.lngLat.lng,
+              e.lngLat.lat
+            ]
+          },
+          "properties": {
+            "timestamp": String(clickTime.getTime()),
+            "humantime": clickTime.toISOString(),
+            "obsType": "raw",
+            "verified": false
+          }
+        };
+        MarkerJSON.features.push(point);
+        //console.log(MarkerJSON)
+        map.getSource('marker-json').setData(MarkerJSON);
+      }
+        //canvas.style.cursor = '';
+    });
+
+    // Create a popup, but don't add it to the map yet.
+    var verifiedPopup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false
+      });
+
+
+    map.on('touchstart','orca-point', function (e) {
+
+        var coordinates = e.features[0].geometry.coordinates.slice();
+        var description = "Time: " + e.features[0].properties.time + "<br>User: " + e.features[0].properties.user + "<br>Note: " + e.features[0].properties.note;
+
+        // Ensure that if the map is zoomed out such that multiple
+        // copies of the feature are visible, the popup appears
+        // over the copy being pointed to.
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+        verifiedPopup.options.closeButton = true;
+        verifiedPopup.setLngLat(coordinates)
+            .setHTML(description)
+            .addTo(map);
+      });
+
+
+    map.on('click','orca-point', function (e) {
+      var coordinates = e.features[0].geometry.coordinates.slice();
+      var description = "Time: " + e.features[0].properties.time + "<br>User: " + e.features[0].properties.user + "<br>Note: " + e.features[0].properties.note;
+
+      // Ensure that if the map is zoomed out such that multiple
+      // copies of the feature are visible, the popup appears
+      // over the copy being pointed to.
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
+
+      verifiedPopup.setLngLat(coordinates)
+          .setHTML(description)
+          .addTo(map);
+    });
+
+    // Change the cursor to a pointer when the mouse is over the places layer.
+    map.on('mouseenter', 'orca-point', function () {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+
+    // Change it back to a pointer when it leaves.
+    map.on('mouseleave', 'orca-point', function () {
+        map.getCanvas().style.cursor = 'crosshair';
+        verifiedPopup.remove();
+    });
+
+    map.on('zoom', function () {
+      map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+      map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+      verifiedPopup.remove();
+    });
+
+    map.on('move', function () {
+      verifiedPopup.remove();
+    });
+    // show coordinates as mouse moves
+    map.on('mousemove', function (e) {
+      //Print the coordinates of where the point had
+      // finished being dragged to on the map.
+
+      //for buttons, should modify https://www.mapbox.com/mapbox-gl-js/example/color-switcher/
+      //buttonOverlay.style.display = 'block';
+      // latitude.innerHTML = e.lngLat.lat;
+      // longitude.innerHTML = e.lngLat.lng;
+
+       // +
+       //                         '<br />Latitude: ' + e.lngLat.lat +
+       //                         '<br /><input type="button" value="Add Raw" id="addRawButton">';
+    });
+
+});
+</script>
+
+
+
+</body>
+</html>
