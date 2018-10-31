@@ -22,26 +22,25 @@
         #minimap{
           height:320px;
           cursor:crosshair;
-        .marker {
-          background-image: url('img/sea-it-rise-flickr-icon.png');
-          background-size: cover;
-          width: 75px;
-          height: 0px;
-          border-radius: 50%;
-          cursor: pointer;
-        }
+
         }
     </style>
 
   </head>
   <body>
+    
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/app.js"></script>
 
+    <script async defer src="https://apis.google.com/js/api.js"
+        onload="this.onload=function(){};handleClientLoad()"
+        onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
 
     <div class="container">
       <div class="row">
         <div class="col-md-6 col-md-offset-3">
           <div class="panel panel-default">
-        
             <!-- put small map into this panel for location -->
             <div id="minimap" class="minimap"></div>
             <div id="mouse-info"></div>
@@ -51,24 +50,28 @@
             <div class="panel-heading">
               <h3 class="panel-title">Click on the Water to Make Observations!</h3>
             </div>
+            <div style="display:table;">
+                    <table id="obs-table" style="margin:5px;">
+                    </table>
+            </div>
             <div class="panel-body">
                 <form id="upload-form">
-                    <div style="display:table;">
-                        <table id="obs-table" style="margin:5px;">
-                        </table>
-                    </div>
-                    <div class="form-group">
-                    <label for="file">Upload photo?</label>
-                    <input type="file" id="file">
-                    </div>
+
+                    <!-- <div class="form-group">
+                        <label for="file">Photo Upload</label>
+                        <input type="file" id="file">
+                    </div> -->
+
                     <div class="form-group">
                     <label for="filename">Note <small>(optional)</small></label>
-                    <input type="text" class="form-control" id="filename" placeholder="Description of observation">
+                    <input type="text" class="form-control" id="observation-description" placeholder="Description of observation">
                     <span class="help-block">A short description of these sightings will improve our data collection</span>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                </form>
+                    </div> 
+                    <button id="upload-button" type="submit" class="btn btn-primary">Upload</button>
+                </form>  
+                <button id="authorize-button" class="btn btn-secondary" style="display: none;">Authorize</button>
+                <button id="signout-button" class="btn btn-secondary" style="display: none;">Sign Out</button> 
+                <button id="google-sheet-button" class="btn btn-secondary" ></button>   
                 <div id="upload-success" class="panel-success" style="display: none;"></div>
                 <div id="upload-error" class="panel-error" style="display: none;"></div><div id="upload-progress" class="progress" style="margin-top: 10px; display: none;">
                 <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 100%">
@@ -81,112 +84,150 @@
       </div>
     </div>
 
-    <!-- <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/rsvp.min.js"></script>
-    <script src="js/kinvey-html5-sdk.min.js"></script>
-    <script src="js/app.js"></script> -->
-
     <script>
-      mapboxgl.accessToken = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ';
-      var map = new mapboxgl.Map({
+
+    var gSheetJSON = app.googleSheetSetup();
+    const googleSheetURL = "https://docs.google.com/spreadsheets/d/" + gSheetJSON.WORKBOOKID;
+    
+    
+    var authorizeButton = document.getElementById('authorize-button');
+    var signoutButton = document.getElementById('signout-button');
+
+    const addObsButton = document.getElementById('upload-button');
+    addObsButton.innerHTML = "Upload Observation(s)";
+    addObsButton.addEventListener('click', function() { addRawObs() });
+
+    const googleSheetButton = document.getElementById('google-sheet-button');
+    googleSheetButton.innerHTML = "Open Google Sheet";
+    googleSheetButton.addEventListener('click', function() { window.open(googleSheetURL,'_blank') });
+
+    // ################### MAPBOX RELATED STUFF ################################
+    const mapbox_apikey = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ';
+
+    mapboxgl.accessToken = mapbox_apikey;  
+    var map = new mapboxgl.Map({
         container: 'minimap', // container id
-        //style: 'mapbox://styles/cpsarason/cj94moiy1nro62qp9ngxksgdo', // stylesheet location
         style: 'mapbox://styles/mapbox/light-v9', // stylesheet location
-        center: [-122.3383, 47.6027], // starting position [lng, lat]
-        zoom: 9 // starting zoom
-      });
+        center: [-123.35, 48.41], // starting position [lng, lat]
+        zoom: 6.5 // starting zoom
+    });
 
-      // add search box to map
-      map.addControl(new MapboxGeocoder({
-          accessToken: mapboxgl.accessToken
-      }));
+    // add search box to map
+    map.addControl(new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken
+    }));
 
-        // Add navigation control to the map.
-      map.addControl(new mapboxgl.NavigationControl());
+    // Add navigation control to the map.
+    map.addControl(new mapboxgl.NavigationControl());
 
-      // Add geolocate control to the map.
-      var userLocation = map.getCenter();
-      map.addControl(new mapboxgl.GeolocateControl({
-          positionOptions: {
-              enableHighAccuracy: true
-          },
-          trackUserLocation: true
-      }));
-      center_coords = [map.getCenter().lng, map.getCenter().lat];
-      //console.log(center_coords)
+    // Add geolocate control to the map.
+    var userLocation = map.getCenter();
+    map.addControl(new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true
+    }));
+    center_coords = [map.getCenter().lng, map.getCenter().lat];
+    //console.log(center_coords)
 
-      // Set up placeholder markers and marker_key array
-      marker_keys = [];
+    // Set up placeholder markers and marker_key array
+    marker_keys = [];
 
-        // TODO: This placeholder JSON should move to app.js
-        var RawSightingsJSON = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": []
-                },
-                "properties": {
-                    "title": "Raw Sighting",
-                    //"icon": "marker",
-                    //"fill-color": "#3887be"
-                }
-            }]
-        };
+    // TODO: This placeholder JSON should move to app.js
+    var RawSightingsJSON = {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": []
+            },
+            "properties": {
+                "title": "Raw Sighting",
+                //"icon": "marker",
+                //"fill-color": "#3887be"
+            }
+        }]
+    };
 
-        var VerifiedSightingsJSON = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": []
-                },
-                "properties": {
-                    "title": "Verified Sighting",
-                    //"icon": "marker",
-                    //"fill-color": "#3887be"
-                }
-            }]
-        };
+    var VerifiedSightingsJSON = {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": []
+            },
+            "properties": {
+                "title": "Verified Sighting",
+                //"icon": "marker",
+                //"fill-color": "#3887be"
+            }
+        }]
+    };
 
-        var MarkerJSON = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": []
-                },
-                "properties": {
-                    "title": "MarkerClick",
-                    //"icon": "marker",
-                    //"fill-color": "#3887be"
-                }
-            }]
-        };
+    var MarkerJSON = {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": []
+            },
+            "properties": {
+                "title": "MarkerClick",
+                //"icon": "marker",
+                //"fill-color": "#3887be"
+            }
+        }]
+    };
 
-        // we want this one to be immutable
-        const BlankMarkerJSON = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": []
-                },
-                "properties": {
-                    "title": "MarkerClick",
-                    //"icon": "marker",
-                    //"fill-color": "#3887be"
-                }
-            }]
-        };
+    // we want this one to be immutable
+    const BlankMarkerJSON = {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": []
+            },
+            "properties": {
+                "title": "MarkerClick",
+                //"icon": "marker",
+                //"fill-color": "#3887be"
+            }
+        }]
+    };
+
+    function addRawObs() {
+
+    //TODO: there has to be a better way, but got this From
+    //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
+    //
+    //NOTE: This hack will go away when we hook up to InfluxDB for persistence
+    //console.log(MarkerJSON.features);
+    RawSightingsJSON = JSON.parse(JSON.stringify({
+        "type" : "FeatureCollection",
+        "features": [... RawSightingsJSON.features, ... MarkerJSON.features]
+        }));
+    //console.log(MarkerJSON.features);
+    //console.log(RawSightingsJSON)
+
+    console.log(document.getElementById('observation-description'));
+
+    //write the raw obs to the Google Sheet, writeObs() is in ./js/app.js file
+    RawSightingsJSON.features.forEach(app.writeObs);
+
+    //change markers --- this is kind of cheating b.c. we're only updating the local copy (e.g. not reading in from the sheet)
+    map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+    map.getSource('marker-json').setData(BlankMarkerJSON);
+    MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+    map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+    }
 
     map.on('load', function () {
-          
+            
         // add a source for the "click" marker
         map.addSource("marker-json", {
             "type": "geojson",
@@ -320,99 +361,31 @@
             });
             map.style.sourceCaches['attribution-layer']._source.attribution = "&copy; NOAA <a href='https://tidesandcurrents.noaa.gov/' target='_blank'>CO-OPS</a> and <a href='https://coast.noaa.gov/digitalcoast/tools/slr' target='_blank'>Office for Coastal Management</a>";
 
-      });
-      
+        });
 
-    //   map.on('dragend', function() {
-    //       document.getElementById('user-location-lat').innerHTML = map.getCenter().lat;
-    //       document.getElementById('user-location-lng').innerHTML = map.getCenter().lng;
-    //       center_coords = [map.getCenter().lng, map.getCenter().lat];
-    //       //console.log(center_coords)
-    //       //console.log()
-    //       markerGeoJSON.features[0].geometry.coordinates = center_coords;
-    //       map.getSource('center').setData(markerGeoJSON);
-          
-    //       //load up markers for photos from Kinvey
-    //       //create the bbox to pass to Kinvey
-    //       bbox_ll = [map.getBounds()._sw.lng, map.getBounds()._sw.lat];
-    //       bbox_ur = [map.getBounds()._ne.lng, map.getBounds()._ne.lat];
-
-    //       //hit Kinvey to find files loaded
-    //       app.loadGeoFiles(bbox_ll, bbox_ur, markerJSON);
-
-    //       //process through returned JSON to put up only the markers not already in our set
-    //       markerJSON.features.forEach(function (markerItem) {
-    //           if (marker_keys.includes(markerItem.properties.title)) {
-    //               true;
-    //           } else {
-    //               //console.log(markerItem);
-    //               photosJSON.features.push(markerItem);
-    //               marker_keys.push(markerItem.properties.title)
-    //           }
-    //       });
-    //       map.getSource('photos').setData(photosJSON);
-
-    //   });
-     
-    //   map.on('zoomend', function() {
-    //       document.getElementById('user-location-lat').innerHTML = map.getCenter().lat;
-    //       document.getElementById('user-location-lng').innerHTML = map.getCenter().lng;
-    //       center_coords = [map.getCenter().lng, map.getCenter().lat];
-    //       //console.log(center_coords)
-    //       markerGeoJSON.features[0].geometry.coordinates = center_coords;
-    //       //update the marker layer to move to the center point
-    //       map.getSource('center').setData(markerGeoJSON);
-
-    //       //load up markers for photos from Kinvey
-    //       //create the bbox to pass to Kinvey
-    //       bbox_ll = [map.getBounds()._sw.lng, map.getBounds()._sw.lat];
-    //       bbox_ur = [map.getBounds()._ne.lng, map.getBounds()._ne.lat];
-
-    //       console.log(markerJSON)
-    //       //hit Kinvey to find files loaded
-    //       app.loadGeoFiles(bbox_ll, bbox_ur, markerJSON);
-
-    //       //process through returned JSON to put up only the markers not already in our set
-    //       MarkerJSON.features.forEach(function (markerItem) {
-    //           if (marker_keys.includes(markerItem.properties.title)) {
-    //               true;
-    //               markerJSON.features.pop();
-    //           } else {
-    //               //console.log(markerItem);
-    //               photosJSON.features.push(markerItem);
-    //               marker_keys.push(markerItem.properties.title)
-    //           }
-    //       });
-    //       //console.log(photosJSON)
-    //       map.getSource('photos').setData(photosJSON);
-    //   });
-
-      map.on('click','water',function (e) {
-      //console.log(MarkerJSON.features);
-      //console.log(e);
-      if (map.getCanvas().style.cursor !== 'pointer'){
+        map.on('click','water',function (e) {
+        //console.log(MarkerJSON.features);
+        //console.log(e);
+        if (map.getCanvas().style.cursor !== 'pointer'){
         var clickTime = new Date();
         point =  {
-          "type": "Feature",
-          "geometry": {
+            "type": "Feature",
+            "geometry": {
             "type": "Point",
             "coordinates": [
-              e.lngLat.lng,
-              e.lngLat.lat
+                e.lngLat.lng,
+                e.lngLat.lat
             ]
-          },
-          "properties": {
+            },
+            "properties": {
             "timestamp": String(clickTime.getTime()),
             "humantime": clickTime.toISOString(),
             "obsType": "raw",
-            "verified": false
-          }
+            "verified": false,
+            "note": document.getElementById('observation-description')
+            }
         };
 
-                            //         <tr>
-                            //     <td style="margin:10px;">Latitude</td>
-                            //     <td style="margin:10px;">Longitude</td>
-                            // </tr>
         var table = document.getElementById('obs-table');
         const lightColor = "background-color:#eeeeFF";
         const darkColor = "background-color:#aaaaFF";
@@ -421,8 +394,8 @@
             headerRow = table.insertRow(0);
             latCell = headerRow.insertCell(0);
             lonCell = headerRow.insertCell(1);
-            latCell.innerHTML = "Latitude";
-            lonCell.innerHTML = "Longitude";
+            latCell.innerHTML = "<strong>Latitude</strong>";
+            lonCell.innerHTML = "<strong>Longitude</strong>";
             headerRow.setAttribute("style",darkColor);
         }
         //var numRows = table.num
@@ -438,11 +411,14 @@
 
         latCell.innerHTML = e.lngLat.lat;
         lonCell.innerHTML = e.lngLat.lng;
-
+        // put in the note that is in the description box at the time
+        var noteText = document.getElementById('observation-description').value;
+        point.properties.note = noteText;
         MarkerJSON.features.push(point);
         //console.log(MarkerJSON)
         map.getSource('marker-json').setData(MarkerJSON);
-      }
+        
+        }
         //canvas.style.cursor = '';
     });
     </script>
