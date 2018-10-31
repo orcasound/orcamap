@@ -214,8 +214,8 @@
     //console.log(MarkerJSON.features);
     //console.log(RawSightingsJSON)
 
-    console.log(document.getElementById('observation-description'));
-
+    //console.log(document.getElementById('observation-description'));
+   
     //write the raw obs to the Google Sheet, writeObs() is in ./js/app.js file
     RawSightingsJSON.features.forEach(app.writeObs);
 
@@ -382,7 +382,7 @@
             "humantime": clickTime.toISOString(),
             "obsType": "raw",
             "verified": false,
-            "note": document.getElementById('observation-description')
+            "notes": document.getElementById('observation-description')
             }
         };
 
@@ -413,9 +413,9 @@
         lonCell.innerHTML = e.lngLat.lng;
         // put in the note that is in the description box at the time
         var noteText = document.getElementById('observation-description').value;
-        point.properties.note = noteText;
+        point.properties.notes = noteText;
         MarkerJSON.features.push(point);
-        //console.log(MarkerJSON)
+        console.log(MarkerJSON)
         map.getSource('marker-json').setData(MarkerJSON);
         
         }
