@@ -202,28 +202,28 @@
 
     function addRawObs() {
 
-    //TODO: there has to be a better way, but got this From
-    //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
-    //
-    //NOTE: This hack will go away when we hook up to InfluxDB for persistence
-    //console.log(MarkerJSON.features);
-    RawSightingsJSON = JSON.parse(JSON.stringify({
-        "type" : "FeatureCollection",
-        "features": [... RawSightingsJSON.features, ... MarkerJSON.features]
-        }));
-    //console.log(MarkerJSON.features);
-    //console.log(RawSightingsJSON)
+        //TODO: there has to be a better way, but got this From
+        //https://codeburst.io/explaining-value-vs-reference-in-javascript-647a975e12a0
+        //
+        //NOTE: This hack will go away when we hook up to InfluxDB for persistence
+        //console.log(MarkerJSON.features);
+        RawSightingsJSON = JSON.parse(JSON.stringify({
+            "type" : "FeatureCollection",
+            "features": [... RawSightingsJSON.features, ... MarkerJSON.features]
+            }));
+        //console.log(MarkerJSON.features);
+        //console.log(RawSightingsJSON)
 
-    //console.log(document.getElementById('observation-description'));
-   
-    //write the raw obs to the Google Sheet, writeObs() is in ./js/app.js file
-    RawSightingsJSON.features.forEach(app.writeObs);
+        //console.log(document.getElementById('observation-description'));
+    
+        //write the raw obs to the Google Sheet, writeObs() is in ./js/app.js file
+        RawSightingsJSON.features.forEach(app.writeObs);
 
-    //change markers --- this is kind of cheating b.c. we're only updating the local copy (e.g. not reading in from the sheet)
-    map.getSource('raw-sightings-json').setData(RawSightingsJSON);
-    map.getSource('marker-json').setData(BlankMarkerJSON);
-    MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
-    map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+        //change markers --- this is kind of cheating b.c. we're only updating the local copy (e.g. not reading in from the sheet)
+        map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+        map.getSource('marker-json').setData(BlankMarkerJSON);
+        MarkerJSON = JSON.parse(JSON.stringify(BlankMarkerJSON));
+        map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
     }
 
     function loadObs() {
@@ -374,85 +374,80 @@
                 }
             }
         });
+    
         map.style.sourceCaches['attribution-layer']._source.attribution = "&copy; NOAA <a href='https://tidesandcurrents.noaa.gov/' target='_blank'>CO-OPS</a> and <a href='https://coast.noaa.gov/digitalcoast/tools/slr' target='_blank'>Office for Coastal Management</a>";
         showObs();
 
-        map.on('zoom', function () {
-            map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
-            map.getSource('raw-sightings-json').setData(RawSightingsJSON);
-            //verifiedPopup.remove();
-        });
+    });
 
-        map.on('drag', function () {
-            map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
-            map.getSource('raw-sightings-json').setData(RawSightingsJSON);
-            //verifiedPopup.remove();
-        });
 
-        map.on('click','water',function (e) {
-            //console.log(MarkerJSON.features);
-            //console.log(e);
-            if (map.getCanvas().style.cursor !== 'pointer') {
-                var clickTime = new Date();
-                point =  {
-                    "type": "Feature",
-                    "geometry": {
-                    "type": "Point",
-                    "coordinates": [
-                        e.lngLat.lng,
-                        e.lngLat.lat
-                    ]
-                    },
-                    "properties": {
-                    "timestamp": String(clickTime.getTime()),
-                    "humantime": clickTime.toISOString(),
-                    "obsType": "raw",
-                    "verified": false,
-                    "notes": document.getElementById('observation-description')
-                    }
+    map.on('zoom', function () {
+        showObs();
+    });
+
+    map.on('drag', function () {
+        showObs();
+    });
+
+    map.on('click','water',function (e) {
+        //console.log(MarkerJSON.features);
+        //console.log(e);
+        if (map.getCanvas().style.cursor !== 'pointer') {
+            var clickTime = new Date();
+            point =  {
+                "type": "Feature",
+                "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    e.lngLat.lng,
+                    e.lngLat.lat
+                ]
+                },
+                "properties": {
+                "timestamp": String(clickTime.getTime()),
+                "humantime": clickTime.toISOString(),
+                "obsType": "raw",
+                "verified": false,
+                "notes": document.getElementById('observation-description')
                 }
             }
-            var table = document.getElementById('obs-table');
-            const lightColor = "background-color:#eeeeFF";
-            const darkColor = "background-color:#aaaaFF";
+        }
+        var table = document.getElementById('obs-table');
+        const lightColor = "background-color:#eeeeFF";
+        const darkColor = "background-color:#aaaaFF";
 
-            if (table.rows.length===0) {
-                headerRow = table.insertRow(0);
-                latCell = headerRow.insertCell(0);
-                lonCell = headerRow.insertCell(1);
-                latCell.innerHTML = "<strong>Latitude</strong>";
-                lonCell.innerHTML = "<strong>Longitude</strong>";
-                headerRow.setAttribute("style",darkColor);
-            }
-            //var numRows = table.num
-        
-            var newRow = table.insertRow(-1);
-            if ((table.rows.length  % 2) === 0) {
-                newRow.setAttribute("style",lightColor);
-            } else {
-                newRow.setAttribute("style",darkColor);
-            }
-            var latCell = newRow.insertCell(0);
-            var lonCell = newRow.insertCell(1);
+        if (table.rows.length===0) {
+            headerRow = table.insertRow(0);
+            latCell = headerRow.insertCell(0);
+            lonCell = headerRow.insertCell(1);
+            latCell.innerHTML = "<strong>Latitude</strong>";
+            lonCell.innerHTML = "<strong>Longitude</strong>";
+            headerRow.setAttribute("style",darkColor);
+        }
+        //var numRows = table.num
+    
+        var newRow = table.insertRow(-1);
+        if ((table.rows.length  % 2) === 0) {
+            newRow.setAttribute("style",lightColor);
+        } else {
+            newRow.setAttribute("style",darkColor);
+        }
+        var latCell = newRow.insertCell(0);
+        var lonCell = newRow.insertCell(1);
 
-            latCell.innerHTML = e.lngLat.lat;
-            lonCell.innerHTML = e.lngLat.lng;
-            // put in the note that is in the description box at the time
-            var noteText = document.getElementById('observation-description').value;
-            point.properties.notes = noteText;
-            MarkerJSON.features.push(point);
-            console.log(MarkerJSON);
+        latCell.innerHTML = e.lngLat.lat;
+        lonCell.innerHTML = e.lngLat.lng;
+        // put in the note that is in the description box at the time
+        var noteText = document.getElementById('observation-description').value;
+        point.properties.notes = noteText;
+        MarkerJSON.features.push(point);
+        console.log(MarkerJSON);
 
-            map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
-            map.getSource('raw-sightings-json').setData(RawSightingsJSON);
-            map.getSource('marker-json').setData(MarkerJSON);
-            
-        });
-
-        map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
-        map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+        showObs();
         map.getSource('marker-json').setData(MarkerJSON);
+        
     });
+
     </script>
 
   </body>
