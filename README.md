@@ -12,4 +12,4 @@ Node.JS site for prototyping map app using mapbox
 
 ## License
 
-TBD
+GNU Affero General Public License v3.0
