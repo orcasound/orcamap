@@ -7,6 +7,7 @@ Node.JS site for prototyping map app using mapbox.
 2. Install Nodejs:Express Framework.
 3. Install Influxdb.
 4. Install Docker.
+   a)Conda setup
  
 ## Run
 
