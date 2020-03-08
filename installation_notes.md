@@ -105,7 +105,7 @@ jovyan@8c6733bd24d0:~$
 ```
 >If above method doesn't install vega then run following commands:
  1. `conda install -c conda-forge vega`
- 2. `conda install -c conda-forge jupyter_contrib_nbextensions`
+ 2. `conda install -c conda-forge jupyter_contrib_nbextensions` and initialize the nbextension.
  
 Now, I just need to stop the docker image, use the docker id shown at the joyvan shell prompt and create a new image. Sweet!
 
