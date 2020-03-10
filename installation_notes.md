@@ -31,7 +31,7 @@ To "stop" this image from running, try the following from another terminal windo
 
     `# docker ps -a`
 
- * find the right docker id for you image, then "stop"
+ * find the right docker id for your image, then "stop"
 
     `# docker stop <docker-image-id>
 
@@ -116,7 +116,7 @@ cpsarason@grimnir:~/code/orcaNet/nodesite-orcaNet/www$
 
 ```
 
-I basically adapted the instructions from digital ocean at: 
+I basically adapted the instructions from the digital ocean at: 
 https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04
 
 
