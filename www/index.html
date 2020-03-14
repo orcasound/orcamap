@@ -315,20 +315,24 @@ map.on('load', function () {
         }
     }, "Raw Sightings");
 
-    map.addSource("hydrophone-json", {
-      "type": "geojson",
-      "data": HydrophoneLocationsJSON
-    })
+    map.loadImage('static/hydrophone-transparent.png', function(error, image){
+      if (error) throw error;
+      map.addImage("hydrophone", image)
+      map.addSource("hydrophone-json", {
+        "type": "geojson",
+        "data": HydrophoneLocationsJSON
+      })
 
-    map.addLayer({
-      "id": "hydrophone-json",
-      "type": "circle",
-      "source": "hydrophone-json",
-      "paint": {
-        "circle-color": "orange",
-        "circle-radius": 10
-      }
-    },"Hydrophone Locations")
+      map.addLayer({
+        "id": "hydrophone-json",
+        "type": "symbol",
+        "source": "hydrophone-json",
+        layout: {
+          "icon-image": "hydrophone",
+          "icon-size": 0.25
+        }
+      },"Hydrophone Locations")
+    })
 
     // add a source for the "raw" sightings
     map.addSource("raw-sightings-json", {
