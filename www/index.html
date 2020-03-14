@@ -243,14 +243,10 @@ const BlankMarkerJSON = {
 
 
 function loadObs() {
-  //TODO: this function will use the function "readObs" to pull in all the obs
-  //      from the google sheet. Obs will be styled with "plain" marker for raw
-  //      and green dot for verified (as above)
-
   allObs = app.readObs();
   VerifiedSightingsJSON = allObs[0];
   RawSightingsJSON = allObs[1];
-  
+  HydrophoneLocationsJSON = allObs[2];
 }
 
 function clearObs() {
@@ -318,6 +314,21 @@ map.on('load', function () {
             "circle-radius": 10,
         }
     }, "Raw Sightings");
+
+    map.addSource("hydrophone-json", {
+      "type": "geojson",
+      "data": HydrophoneLocationsJSON
+    })
+
+    map.addLayer({
+      "id": "hydrophone-json",
+      "type": "circle",
+      "source": "hydrophone-json",
+      "paint": {
+        "circle-color": "orange",
+        "circle-radius": 10
+      }
+    },"Hydrophone Locations")
 
     // add a source for the "raw" sightings
     map.addSource("raw-sightings-json", {
@@ -544,6 +555,7 @@ map.on('load', function () {
     map.on('zoom', function () {
       map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
       map.getSource('raw-sightings-json').setData(RawSightingsJSON);
+      map.getSource('hydrophone-json').setData(HydrophoneLocationsJSON);
       verifiedPopup.remove();
     });
 
