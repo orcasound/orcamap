@@ -8,18 +8,31 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server"
+    "start": "node server",
+    "deploy": "echo \"TODO make deploy script\""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cpsarason/orcaSoundViz.git"
+    "url": "git+https://github.com/orcasound/orcamap.git"
   },
   "author": "Christian P. Sarason",
+  "contributors": [
+    {
+      "name": "Ivan Storck",
+      "email": "ivanoats@gmail.com",
+      "url": "https://www.ivanstorck.com"
+    },
+    {
+      "name": "Scott Viers",
+      "email": "scott@beamreach.org",
+      "url": "https://orcasound.net"
+    }
+  ],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/cpsarason/orcaSoundViz/issues"
+    "url": "https://github.com/orcasound/orcamap/issues"
   },
-  "homepage": "https://github.com/cpsarason/orcaSoundViz#readme",
+  "homepage": "https://github.com/orcasound/orcamap#readme",
   "dependencies": {
     "express": "4.14.1"
   }

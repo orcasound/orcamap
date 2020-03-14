@@ -33,6 +33,7 @@ var app = {
       // Spreadsheet ID and cell range for retrieval of obsType
       WORKBOOKID : "1Ezv9Xqa_CmFR3kwEMUYCy1GMDOm1la_gzZsXUIsOy_E",
       VISUALSHEET : "OrcaSoundVisualObs",
+      HYDROPHONESHEET : "HydrophoneFeeds",
       ACOUSTICSHEET : "OrcaSoundAcousticObs",
       RANGE : "A2:I",
 
