@@ -8,14 +8,18 @@ Node.JS site for prototyping map app using mapbox
 
 ## Prerequistes
 
-- Install NodeJS on your development machine
-- Access to 
+- Install =[NodeJS](https://nodejs.org/en/download/package-manager/) on your development machine
+- Request access to Google Spreadsheets data source
 
 ## Run
 
 1. Execute `npm install`.
 2. Execute `npm start`.
 3. Open `https://localhost:3000/`
+
+## Test
+
+- TODO
 
 ## License
 
