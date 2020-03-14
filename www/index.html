@@ -248,8 +248,10 @@ function loadObs() {
   //      and green dot for verified (as above)
 
   allObs = app.readObs();
+  console.dir(allObs);
   VerifiedSightingsJSON = allObs[0];
   RawSightingsJSON = allObs[1];
+  HydrophoneLocationsJSON = allObs[2];
   
 }
 

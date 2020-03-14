@@ -86,9 +86,28 @@ var app = {
       ]
     }
 
-    //read in obs from the gSheet passed to this function
+    //geoJSON for HydrophoneLocations
+    var gsheetHydrophoneLocations = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: []
+          },
+          properties: {
+            title: "Hydrophone"
+            //"icon": "hydrophone?"
+          }
+        }
+      ]
+    }
 
-    gapi.client.sheets.spreadsheets.values
+    //read in obs from the gSheet passed to this function
+    var client = gapi.client
+    var clientSheets = gapi.client.sheets
+    clientSheets.spreadsheets.values
       .get({
         spreadsheetId: gSheetJSON.WORKBOOKID,
         range: gSheetJSON.VISUALSHEET + "!" + gSheetJSON.RANGE
@@ -97,6 +116,7 @@ var app = {
         function(response) {
           var range = response.result
           if (range.values.length > 0) {
+            // if we got data from google sheets
             //console.log('Time, Type, User, Latitude, Longitude, Acoustic Intensity, Verified Intensity');
             for (i = 0; i < range.values.length; i++) {
               var row = range.values[i]
@@ -146,7 +166,42 @@ var app = {
           console.log("Error: " + response.result.error.message)
         }
       )
-    return [gsheetVerifiedObs, gsheetRawObs]
+    clientSheets.spreadsheets.values
+      .get({
+        spreadsheetId: gSheetJSON.WORKBOOKID,
+        range: gSheetJSON.HYDROPHONESHEET + "!" + gSheetJSON.RANGE
+      })
+      .then(
+        response => {
+          var range = response.result
+          console.log("RANGE VALUES", range.values)
+          //fail fast
+          if (range.values.length < 1) {
+            console.log("no hydrophones")
+            return
+          }
+          gsheetHydrophoneLocations.features = gsheetHydrophoneLocations.features.concat(
+            range.values.map(row => {
+              // return a new hydrophone location for each row
+              return {
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [parseFloat(row[3]), parseFloat(row[4])]
+                },
+                properties: {
+                  title: "Hydrophone",
+                  name: row[6]
+                }
+              }
+            })
+          )
+        },
+        function(respone) {
+          console.log("Error: " + response.result.error.message)
+        }
+      )
+    return [gsheetVerifiedObs, gsheetRawObs, gsheetHydrophoneLocations]
   },
 
   writeObs: function writeObs(obs) {

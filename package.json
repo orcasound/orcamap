@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server",
+    "start": "nodemon server",
     "deploy": "echo \"TODO make deploy script\""
   },
   "repository": {
@@ -35,5 +35,8 @@
   "homepage": "https://github.com/orcasound/orcamap#readme",
   "dependencies": {
     "express": "4.14.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
   }
 }
