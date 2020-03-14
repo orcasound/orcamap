@@ -174,7 +174,6 @@ var app = {
       .then(
         response => {
           var range = response.result
-          console.log("RANGE VALUES", range.values)
           //fail fast
           if (range.values.length < 1) {
             console.log("no hydrophones")
@@ -187,7 +186,7 @@ var app = {
                 type: "Feature",
                 geometry: {
                   type: "Point",
-                  coordinates: [parseFloat(row[3]), parseFloat(row[4])]
+                  coordinates: [parseFloat(row[4]), parseFloat(row[3])]
                 },
                 properties: {
                   title: "Hydrophone",
