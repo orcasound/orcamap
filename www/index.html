@@ -241,8 +241,14 @@ const BlankMarkerJSON = {
     }]
 };
 
+setInterval(function(){
+    loadObs();
+}, 5*60000)
+
 
 function loadObs() {
+  var d = new Date();
+  console.log("Updating with Google sheets at: ", d.getHours()+":"+d.getMinutes())
   allObs = app.readObs();
   VerifiedSightingsJSON = allObs[0];
   RawSightingsJSON = allObs[1];
