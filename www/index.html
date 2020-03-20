@@ -243,7 +243,12 @@ const BlankMarkerJSON = {
 
 setInterval(function(){
     loadObs();
+    showObs();
 }, 5*60000)
+
+setTimeout(function(){
+    showObs();
+}, 4000)
 
 
 function loadObs() {
@@ -253,7 +258,7 @@ function loadObs() {
   VerifiedSightingsJSON = allObs[0];
   RawSightingsJSON = allObs[1];
   HydrophoneLocationsJSON = allObs[2];
-  showObs();
+  //showObs();
 }
 
 function clearObs() {
@@ -301,6 +306,7 @@ return;
 function showObs() {
   map.getSource('raw-sightings-json').setData(RawSightingsJSON);
   map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
+  map.getSource('hydrophone-json').setData(HydrophoneLocationsJSON);
 }
 
 map.on('load', function () {
