@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="css/todc-bootstrap.min.css">
     <link rel="stylesheet" href="css/app.css">
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
@@ -243,10 +243,14 @@ const BlankMarkerJSON = {
 
 
 function loadObs() {
+  //TODO: this function will use the function "readObs" to pull in all the obs
+  //      from the google sheet. Obs will be styled with "plain" marker for raw
+  //      and green dot for verified (as above)
+
   allObs = app.readObs();
   VerifiedSightingsJSON = allObs[0];
   RawSightingsJSON = allObs[1];
-  HydrophoneLocationsJSON = allObs[2];
+  
 }
 
 function clearObs() {
@@ -315,25 +319,6 @@ map.on('load', function () {
         }
     }, "Raw Sightings");
 
-    map.loadImage('static/hydrophone-transparent.png', function(error, image){
-      if (error) throw error;
-      map.addImage("hydrophone", image)
-      map.addSource("hydrophone-json", {
-        "type": "geojson",
-        "data": HydrophoneLocationsJSON
-      })
-
-      map.addLayer({
-        "id": "hydrophone-json",
-        "type": "symbol",
-        "source": "hydrophone-json",
-        layout: {
-          "icon-image": "hydrophone",
-          "icon-size": 0.25
-        }
-      },"Hydrophone Locations")
-    })
-
     // add a source for the "raw" sightings
     map.addSource("raw-sightings-json", {
       "type": "geojson",
@@ -384,57 +369,57 @@ map.on('load', function () {
     map.addSource("verified-sightings-json", {
       "type": "geojson",
       "data": VerifiedSightingsJSON,
-      cluster: true,
-      clusterMaxZoom: 15,
-      clusterRadius: 50
+    //   cluster: true,
+    //   clusterMaxZoom: 15,
+    //   clusterRadius: 50
     });
 
-    //add a layer for the "verified" sightings that come after a point is "added"
-    map.addLayer({
-        id: "verified-sightings-json-cluster",
-        type: "circle",
-        source:  "verified-sightings-json",
-        filter: ["has","point_count"],
-        paint: {
-            "circle-color": "green",
-            "circle-radius": 30
+    // //add a layer for the "verified" sightings that come after a point is "added"
+    // map.addLayer({
+    //     id: "verified-sightings-json-cluster",
+    //     type: "circle",
+    //     source:  "verified-sightings-json",
+    //     filter: ["has","point_count"],
+    //     paint: {
+    //         "circle-color": "green",
+    //         "circle-radius": 30
 
-            // [
-            //   "step",
-            //   ["get", "point_count"],
-            //   20,
-            //   2,
-            //   30,
-            //   5,
-            //   40
-            // ]
-        }
-    }, "Verified Sightings Cluster");
+    //         // [
+    //         //   "step",
+    //         //   ["get", "point_count"],
+    //         //   20,
+    //         //   2,
+    //         //   30,
+    //         //   5,
+    //         //   40
+    //         // ]
+    //     }
+    // }, "Verified Sightings Cluster");
 
-    //add a text layer for the "verified" sighting clusters
-    map.addLayer({
-        "id": "verified-sightings-cluster-count",
-        "type": "symbol",
-        "source":  "verified-sightings-json",
-        filter: ["has","point_count"],
-        layout: {
-          "text-field": "{point_count_abbreviated}",
-          "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-          "text-size": 12
-        }
-    }, "Verified Sightings Count");
+    // //add a text layer for the "verified" sighting clusters
+    // map.addLayer({
+    //     "id": "verified-sightings-cluster-count",
+    //     "type": "symbol",
+    //     "source":  "verified-sightings-json",
+    //     filter: ["has","point_count"],
+    //     layout: {
+    //       "text-field": "{point_count_abbreviated}",
+    //       "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+    //       "text-size": 12
+    //     }
+    // }, "Verified Sightings Count");
 
-    //add a layer for the "verified" sightings that come after a point is "added"
-    map.addLayer({
-        "id": "verified-sightings-json",
-        "type": "circle",
-        "source":  "verified-sightings-json",
-        filter: ["!has","point_count"],
-        "paint": {
-            "circle-color": "green",
-            "circle-radius": 5,
-        }
-    }, "Verified Sightings");
+    // //add a layer for the "verified" sightings that come after a point is "added"
+    // map.addLayer({
+    //     "id": "verified-sightings-json",
+    //     "type": "circle",
+    //     "source":  "verified-sightings-json",
+    //     //filter: ["!has","point_count"],
+    //     "paint": {
+    //         "circle-color": "green",
+    //         "circle-radius": 5,
+    //     }
+    // }, "Verified Sightings");
 
     // add attribution layer
     map.addLayer({
@@ -449,6 +434,116 @@ map.on('load', function () {
             }
         }
     });
+
+    //add a heatmap layer for orca sightings
+    map.addLayer({
+        "id": "orca-heat",
+        "type": "heatmap",
+        "source": "verified-sightings-json",
+        "maxzoom": 12,
+        "paint": {
+            // Increase the heatmap weight based on frequency and property magnitude
+            "heatmap-weight": [
+                "interpolate",
+                ["linear"],
+                ["get", "time"],
+                0, 0,
+                6, 1
+            ],
+            // Increase the heatmap color weight weight by zoom level
+            // heatmap-intensity is a multiplier on top of heatmap-weight
+            "heatmap-intensity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0, 1,
+                14, 3
+            ],
+            // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
+            // Begin color ramp at 0-stop with a 0-transparancy color
+            // to create a blur-like effect.
+            "heatmap-color": [
+                "interpolate",
+                ["linear"],
+                ["heatmap-density"],
+                0, "rgba(33,102,172,0)",
+                0.2, "rgb(103,169,207)",
+                0.4, "rgb(209,229,240)",
+                0.6, "rgb(253,219,199)",
+                0.8, "rgb(239,138,98)",
+                1, "rgb(178,24,43)"
+            ],
+            // Adjust the heatmap radius by zoom level
+            "heatmap-radius": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0, 10,
+                10, 50
+            ],
+            // Transition from heatmap to circle layer by zoom level
+            "heatmap-opacity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7, 1,
+                10, 0
+            ],
+        }
+
+    }, 'waterway-label');
+
+    map.addLayer({
+        "id": "orca-point",
+        "type": "circle",
+        "source": "verified-sightings-json",
+        "minzoom": 7,
+        "paint": {
+            // Size circle radius by earthquake magnitude and zoom level
+            "circle-radius": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7, [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "time"],
+                    1, 1,
+                    6, 4
+                ],
+                16, [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "time"],
+                    1, 5,
+                    6, 50
+                ]
+            ],
+            // Color circle by earthquake magnitude
+            "circle-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "time"],
+                1, "rgba(33,102,172,0)",
+                2, "rgb(103,169,207)",
+                3, "rgb(209,229,240)",
+                4, "rgb(253,219,199)",
+                5, "rgb(239,138,98)",
+                6, "rgb(178,24,43)"
+            ],
+            "circle-stroke-color": "white",
+            "circle-stroke-width": 1,
+            // Transition from heatmap to circle layer by zoom level
+            "circle-opacity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7, 0,
+                9, 1
+            ]
+        }
+    }, 'waterway-label');
+
     map.style.sourceCaches['attribution-layer']._source.attribution = "&copy; NOAA <a href='https://tidesandcurrents.noaa.gov/' target='_blank'>CO-OPS</a> and <a href='https://coast.noaa.gov/digitalcoast/tools/slr' target='_blank'>Office for Coastal Management</a>";
 
     // TODO: add search box to map?
@@ -511,7 +606,7 @@ map.on('load', function () {
       });
 
 
-    map.on('touchstart','verified-sightings-json', function (e) {
+    map.on('touchstart','orca-point', function (e) {
 
         var coordinates = e.features[0].geometry.coordinates.slice();
         var description = "Time: " + e.features[0].properties.time + "<br>User: " + e.features[0].properties.user + "<br>Note: " + e.features[0].properties.note;
@@ -529,7 +624,7 @@ map.on('load', function () {
       });
 
 
-    map.on('click','verified-sightings-json', function (e) {
+    map.on('click','orca-point', function (e) {
       var coordinates = e.features[0].geometry.coordinates.slice();
       var description = "Time: " + e.features[0].properties.time + "<br>User: " + e.features[0].properties.user + "<br>Note: " + e.features[0].properties.note;
 
@@ -546,12 +641,12 @@ map.on('load', function () {
     });
 
     // Change the cursor to a pointer when the mouse is over the places layer.
-    map.on('mouseenter', 'verified-sightings-json', function () {
+    map.on('mouseenter', 'orca-point', function () {
         map.getCanvas().style.cursor = 'pointer';
     });
 
     // Change it back to a pointer when it leaves.
-    map.on('mouseleave', 'verified-sightings-json', function () {
+    map.on('mouseleave', 'orca-point', function () {
         map.getCanvas().style.cursor = 'crosshair';
         verifiedPopup.remove();
     });
@@ -559,7 +654,6 @@ map.on('load', function () {
     map.on('zoom', function () {
       map.getSource('verified-sightings-json').setData(VerifiedSightingsJSON);
       map.getSource('raw-sightings-json').setData(RawSightingsJSON);
-      map.getSource('hydrophone-json').setData(HydrophoneLocationsJSON);
       verifiedPopup.remove();
     });
 
