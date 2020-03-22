@@ -15,7 +15,7 @@
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    
+
     <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.min.js'></script>
     <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v2.1.1/mapbox-gl-geocoder.css' type='text/css' />
 
@@ -125,7 +125,7 @@
 
 <script>
 
-mapboxgl.accessToken =constants.token
+mapboxgl.accessToken = constants.token
 
 var orcaTrack = $.getJSON('/data/track.geojson');
 var shipTrack = $.getJSON('/data/beamreach.geojson');
@@ -137,13 +137,11 @@ var popup = new mapboxgl.Popup({
 
 var map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/cpsarason/cjfvnf3vn06dp2rnk2kcq110a',
+    style: 'mapbox://styles/cpsarason/cjfbctlpk34xd2rqkjrqnrq3y',
     zoom: 9.5,
     center: [ -123.04481506347655,
           48.58840868861914]
 });
-
-//mapbox://styles/cpsarason/cjfvnf3vn06dp2rnk2kcq110a
 
 map.on('load', function () {
     // window.setInterval(function() {
@@ -164,14 +162,19 @@ map.on('load', function () {
     //    'source': 'ship-track',
     //
     //   });
-    // map.addLayer({
-    //   'id': 'orca-sound-map',
-    //   'source': 'mapbox://styles/cpsarason/cjfbctlpk34xd2rqkjrqnrq3y',
-    //
-    // })
+    map.addSource('seamap', {
+        'type': 'raster',
+        'tiles': [
+            'https://seamap.env.duke.edu/seamap3.0/main/seamap_gm.php?sid=5ace71da5f8fc&mode=draw_map&layers=dist_taxa_001deg'
+        ],
+        'tileSize': 256
+    });
+    map.addLayer({
+        'id': 'seamap',
+        'type': 'raster',
+        'source': 'seamap',
 
-
-
+    }, "aeroway-taxiway");
 
     // map.addSource('orca-track',
     //               { type: 'geojson', data: orcaTrack.responseJSON}

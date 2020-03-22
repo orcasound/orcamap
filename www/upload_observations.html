@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/todc-bootstrap.min.css">
     <link rel="stylesheet" href="css/app.css">
-
+    <script src="./js/constants.js"></script>
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
         
@@ -102,7 +102,7 @@
     googleSheetButton.addEventListener('click', function() { window.open(googleSheetURL,'_blank') });
 
     // ################### MAPBOX RELATED STUFF ################################
-    const mapbox_apikey = 'pk.eyJ1IjoiY3BzYXJhc29uIiwiYSI6IjM5ZGM2MTgxNGIxMTUyM2NhYzU3N2U0Y2VjODY2Zjc2In0.XjvKMZgY5p-AmHgX5fqgtQ';
+    const mapbox_apikey = constants.token;
 
     mapboxgl.accessToken = mapbox_apikey;  
     var map = new mapboxgl.Map({
