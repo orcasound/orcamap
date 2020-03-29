@@ -258,7 +258,9 @@ function loadObs() {
   VerifiedSightingsJSON = allObs[0];
   RawSightingsJSON = allObs[1];
   HydrophoneLocationsJSON = allObs[2];
-  //showObs();
+  setTimeout(function(){
+    showObs();
+  }, 2000)
 }
 
 function clearObs() {
