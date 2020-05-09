@@ -9,7 +9,3 @@ Node.JS site for prototyping map app using mapbox
 
 1. Execute `npm install`.
 2. Execute `npm start`.
-
-## License
-
-TBD
