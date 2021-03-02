@@ -14,7 +14,7 @@ This repository contains code,Node.JS site for prototyping map app using mapbox
 - A ReactJS version of Orcamap [orcamap-react](https://github.com/orcasound/orcamap-react)
 
 ## Directories
-- Directory notebooks stores JupyterNotebook files that 
+ 
 ```
 ├── data
 │   └── ingest
