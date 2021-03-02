@@ -1,6 +1,6 @@
 # OrcaSoundViz WebApp
 
-This repository contains code,Node.JS site for prototyping map app using mapbox
+Node.JS site for prototyping map app using mapbox
 
 ![GitHub](https://img.shields.io/github/license/JiayiIsaPopulerName/orcamap?color=%2381D4FA&style=flat-square)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/JiayiIsaPopulerName/orcamap?color=%2381C784&style=flat-square)
